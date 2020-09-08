@@ -73,22 +73,6 @@ void set_fan_rpm(unsigned long x, struct razer_laptop *laptop) {
             laptop->fan_rpm = request_fan_speed * 100;
             // All packets
             report = get_razer_report(0x0d, 0x82, 0x04);
-#if 0
-            buffer[0] = 0x00;
-            buffer[1] = 0x1f;
-            buffer[2] = 0x00;
-            buffer[3] = 0x00;
-            buffer[4] = 0x00;
-
-            // Unknown
-            buffer[5] = 0x04;
-            buffer[6] = 0x0d;
-            buffer[7] = 0x82;
-            buffer[8] = 0x00;
-            buffer[9] = 0x01;
-            buffer[10] = 0x00;
-            buffer[11] = 0x00;
-#endif
             // get current power mode
             report.args[0] = 0x00;
             report.args[1] = 0x01;
@@ -96,19 +80,8 @@ void set_fan_rpm(unsigned long x, struct razer_laptop *laptop) {
             report.args[3] = 0x00;
             send_payload(laptop->usb_dev, &report);
 
-            report = get_razer_report(0x0d, 0x02, 0x04);
-#if 0
-            // Unknown
-            buffer[5] = 0x04;
-            buffer[6] = 0x0d;
-            buffer[7] = 0x02;
-            buffer[8] = 0x00;
-            buffer[9] = 0x01;
-            buffer[10] = laptop->power_mode;
-            buffer[11] = laptop->fan_rpm != 0 ? 0x01 : 0x00;
-
-#endif
             // set current power mode with custom rpm
+            report = get_razer_report(0x0d, 0x02, 0x04);
             report.args[0] = 0x00;
             report.args[1] = 0x01;
             report.args[2] = laptop->power_mode;
@@ -116,32 +89,13 @@ void set_fan_rpm(unsigned long x, struct razer_laptop *laptop) {
             send_payload(laptop->usb_dev, &report);
 
             report = get_razer_report(0x0d, 0x01, 0x03);
-#if 0
             // Set fan RPM
-            buffer[5] = 0x03;
-            buffer[6] = 0x0d;
-            buffer[7] = 0x01;
-            buffer[8] = 0x00;
-            buffer[9] = 0x01;
-            buffer[10] = request_fan_speed;
-            buffer[11] = 0x00;
-#endif
             report.args[0] = 0x00;
             report.args[1] = 0x01;
             report.args[2] = request_fan_speed;
             send_payload(laptop->usb_dev, &report);
 
             report = get_razer_report(0x0d, 0x82, 0x04);
-#if 0
-            // Unknown
-            buffer[5] = 0x04;
-            buffer[6] = 0x0d;
-            buffer[7] = 0x82;
-            buffer[8] = 0x00;
-            buffer[9] = 0x02;
-            buffer[10] = 0x00;
-            buffer[11] = 0x00;
-#endif
             report.args[0] = 0x00;
             report.args[1] = 0x02;
             report.args[2] = 0x00;
@@ -152,15 +106,6 @@ void set_fan_rpm(unsigned long x, struct razer_laptop *laptop) {
         }
         // Fan mode
         report = get_razer_report(0x0d, 0x82, 0x04);
-#if 0
-        buffer[5] = 0x04;
-        buffer[6] = 0x0d;
-        buffer[7] = 0x02;
-        buffer[8] = 0x00;
-        buffer[9] = 0x02;
-        buffer[10] = laptop->power_mode;
-        buffer[11] = laptop->fan_rpm != 0 ? 0x01 : 0x00;
-#endif
         report.args[0] = 0x00;
         report.args[1] = 0x02;
         report.args[2] = laptop->power_mode;
@@ -170,15 +115,6 @@ void set_fan_rpm(unsigned long x, struct razer_laptop *laptop) {
         if (x != 0) {
             // Set fan RPM
             report = get_razer_report(0x0d, 0x01, 0x03);
-#if 0
-            buffer[5] = 0x03;
-            buffer[6] = 0x0d;
-            buffer[7] = 0x01;
-            buffer[8] = 0x00;
-            buffer[9] = 0x02;
-            buffer[10] = request_fan_speed;
-            buffer[11] = 0x00;
-#endif
             report.args[0] = 0x00;
             report.args[1] = 0x02;
             report.args[2] = request_fan_speed;
