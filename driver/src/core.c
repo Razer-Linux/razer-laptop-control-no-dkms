@@ -163,6 +163,7 @@ struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet
         if(response_report.remaining_packets != request_report->remaining_packets ||
            response_report.command_class != request_report->command_class ||
            response_report.command_id.id != request_report->command_id.id) {
+            print_erroneous_report(request_report, "Razer laptop control", "Request");
             print_erroneous_report(&response_report, "Razer laptop control", "Response doesn't match request");
 //		} else if (response_report.status == RAZER_CMD_BUSY) {
 //			print_erroneous_report(&response_report, "razerkbd", "Device is busy");
@@ -247,6 +248,7 @@ unsigned char clamp_u8(unsigned char value, unsigned char min, unsigned char max
         return min;
     return value;
 }
+
 unsigned short clamp_u16(unsigned short value, unsigned short min, unsigned short max)
 {
     if(value > max)
