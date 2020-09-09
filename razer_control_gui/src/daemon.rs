@@ -61,11 +61,12 @@ fn main() {
     }
 
     if let Ok(c) = CONFIG.lock() {
-        driver_sysfs::write_brightness(c.brightness);
+        // driver_sysfs::write_brightness(c.brightness);
         driver_sysfs::write_fan_rpm(c.fan_rpm);
         driver_sysfs::write_power(c.power_mode);
         driver_sysfs::write_cpu_boost(c.cpu_boost);
         driver_sysfs::write_gpu_boost(c.gpu_boost);
+        driver_sysfs::write_logo_state(c.logo_state);
         if let Ok(json) = config::Configuration::read_effects_file() {
             EFFECT_MANAGER.lock().unwrap().load_from_save(json);
         } else {
@@ -156,6 +157,14 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
             }
             Some(comms::DaemonResponse::SetFanSpeed { result: driver_sysfs::write_fan_rpm(rpm) })
         },
+        comms::DaemonCommand::SetLogoLedState{ logo_state } => {
+            if let Ok (mut x) = CONFIG.lock() {
+                x.logo_state = logo_state;
+                x.write_to_file().unwrap();
+            }
+            Some(comms::DaemonResponse::SetLogoLedState { result: driver_sysfs::write_logo_state(logo_state) })
+        },
+        comms::DaemonCommand::GetLogoLedState() => Some(comms::DaemonResponse::GetLogoLedState {logo_state: driver_sysfs::read_logo_state() }),
         comms::DaemonCommand::GetKeyboardRGB { layer } => {
             let map = EFFECT_MANAGER.lock().unwrap().get_map(layer);
             Some(comms::DaemonResponse::GetKeyboardRGB {

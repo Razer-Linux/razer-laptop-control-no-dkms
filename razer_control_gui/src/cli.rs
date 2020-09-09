@@ -22,6 +22,11 @@ fn print_help(reason: &str) -> ! {
     println!("                          0..3 = cpu boost");
     println!("                          0..2 = gpu boost");
     println!("");
+    println!("- logo   -> Logo mode.");
+    println!("              0 = Off");
+    println!("              1 = On");
+    println!("              2 = Breathing");
+    println!("");
     println!("- effect:");
     println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
     println!("  -> 'static_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>");
@@ -45,6 +50,7 @@ fn main() {
             match args[2].to_ascii_lowercase().as_str() {
                 "fan" => read_fan_rpm(),
                 "power" => read_power_mode(),
+                "logo" => read_logo_mode(),
                 _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
             }
         },
@@ -66,6 +72,7 @@ fn main() {
             if let Ok(processed) = args[3].parse::<i32>() {
                 match args[2].to_ascii_lowercase().as_str() {
                     "fan" => write_fan_speed(processed),
+                    "logo" => write_logo_mode(processed as u8),
                     _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
                 }
             } else {
@@ -145,6 +152,19 @@ fn read_fan_rpm() {
             println!("Current fan setting: {}", rpm_desc);
         } else {
             eprintln!("Daemon responded with invalid data!");
+        }
+    }
+}
+
+fn read_logo_mode() {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetLogoLedState()) {
+        if let comms::DaemonResponse::GetLogoLedState {logo_state } = resp {
+            let logo_state_desc : &str = match logo_state {
+                0 => "Off",
+                1 => "On",
+                2 => "Breathing",
+                _ => "Unknown"
+            };
         }
     }
 }
@@ -246,6 +266,14 @@ fn write_pwr_mode(opt: Vec<String>) {
 fn write_fan_speed(x: i32) {
     if let Some(_) = send_data(comms::DaemonCommand::SetFanSpeed { rpm: x }) {
         read_fan_rpm()
+    } else {
+        eprintln!("Unknown error!");
+    }
+}
+
+fn write_logo_mode(x: u8) {
+    if let Some(_) = send_data(comms::DaemonCommand::SetLogoLedState { logo_state: x }) {
+        read_logo_mode()
     } else {
         eprintln!("Unknown error!");
     }

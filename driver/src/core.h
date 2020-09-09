@@ -11,6 +11,30 @@
 #include "fancontrol.h"
 #include "defines.h"
 
+// LED STORAGE Options
+#define NOSTORE          0x00
+#define VARSTORE         0x01
+
+// LED definitions
+#define ZERO_LED          0x00
+#define SCROLL_WHEEL_LED  0x01
+#define BATTERY_LED       0x03
+#define LOGO_LED          0x04
+#define BACKLIGHT_LED     0x05
+#define MACRO_LED         0x07
+#define GAME_LED          0x08
+#define RED_PROFILE_LED   0x0C
+#define GREEN_PROFILE_LED 0x0D
+#define BLUE_PROFILE_LED  0x0E
+#define RIGHT_SIDE_LED    0x10
+#define LEFT_SIDE_LED     0x11
+
+// LED Effect definitions
+#define LED_STATIC           0x00
+#define LED_BLINKING         0x01
+#define LED_PULSATING        0x02
+#define LED_SPECTRUM_CYCLING 0x04
+
 // Report Responses
 #define RAZER_CMD_BUSY          0x01
 #define RAZER_CMD_SUCCESSFUL    0x02
@@ -46,6 +70,7 @@ typedef struct razer_laptop {
     __u8 power_mode; // Power mode (0 = normal, 1 = gaming, 2 = creator, 4 = custom)
     __u8 cpu_boost; // only for custom mode
     __u8 gpu_boost; // only for custom mode
+    __u8 logo_led_state;
     keyboard_info kbd; // Keyboard data
 } razer_laptop;
 
@@ -106,5 +131,7 @@ struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet
 void set_fan_rpm(unsigned long x, struct razer_laptop *laptop);
 int set_power_mode(unsigned long x, struct razer_laptop *laptop);
 int set_custom_power_mode(unsigned long cpu_boost, unsigned long gpu_boost, struct razer_laptop *laptop);
+unsigned char clamp_u8(unsigned char value, unsigned char min, unsigned char max);
+unsigned short clamp_u16(unsigned short value, unsigned short min, unsigned short max);
 
 #endif

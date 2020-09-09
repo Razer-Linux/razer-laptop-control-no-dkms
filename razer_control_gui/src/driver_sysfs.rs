@@ -66,6 +66,7 @@ pub fn write_rgb_map(map: Vec<u8>) -> bool {
 pub fn write_brightness(lvl: u8) -> bool {
     return write_to_sysfs("brightness", String::from(format!("{}", lvl)));
 }
+
 pub fn read_brightness() -> u8 {
     return match read_from_sysfs("brightness") {
         Some(x) => x.parse::<u8>().unwrap(),
@@ -86,6 +87,17 @@ pub fn write_cpu_boost(cpu_boost: u8) -> bool {
 //gpu_boost is read + write
 pub fn write_gpu_boost(gpu_boost: u8) -> bool {
     return write_to_sysfs("gpu_boost", String::from(format!("{}", gpu_boost)));
+}
+
+pub fn write_logo_state(logo_state: u8) -> bool {
+    return write_to_sysfs("logo_led_state", String::from(format!("{}", logo_state)));
+}
+
+pub fn read_logo_state() -> u8 {
+    return match read_from_sysfs("logo_led_state") {
+        Some(x) => x.parse::<u8>().unwrap(),
+        none => 0,
+    };
 }
 
 pub fn read_power() -> u8 {

@@ -14,6 +14,7 @@ pub struct Configuration {
     pub gpu_boost: u8,
     pub fan_rpm: i32,
     pub brightness: u8,
+    pub logo_state: u8,
 }
 
 impl Configuration {
@@ -24,6 +25,7 @@ impl Configuration {
             gpu_boost: 0,
             fan_rpm: 0,
             brightness: 128,
+            logo_state: 0,
         };
     }
 

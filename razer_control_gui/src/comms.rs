@@ -14,6 +14,8 @@ pub enum DaemonCommand {
     GetPwrLevel(),                 // Get (Power mode)
     GetCPUBoost(),                 // Get (CPU boost)
     GetGPUBoost(),                 // Get (GPU boost)
+    SetLogoLedState{ logo_state: u8 },
+    GetLogoLedState(),
     GetKeyboardRGB { layer: i32 }, // Layer ID
     GetCfg(),                      // Request curr settings for fan + power
     SetEffect { name: String, params: Vec<u8> } // Set keyboard colour
@@ -29,6 +31,8 @@ pub enum DaemonResponse {
     GetPwrLevel { pwr: u8 },                         // Get (Power mode)
     GetCPUBoost { cpu: u8 },                         // Get (CPU boost)
     GetGPUBoost { gpu: u8 },                         // Get (GPU boost)
+    SetLogoLedState {result: bool },
+    GetLogoLedState { logo_state: u8 },
     GetKeyboardRGB { layer: i32, rgbdata: Vec<u8> }, // Response (RGB) of 90 keys
     GetCfg { fan_rpm: i32, pwr: u8 },                // Fan speed, power mode
     SetEffect { result: bool }                       // Set keyboard colour

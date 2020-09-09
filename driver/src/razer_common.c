@@ -154,12 +154,55 @@ static ssize_t gpu_boost_store(struct device *dev, struct device_attribute *attr
 	return count;
 }
 
+static ssize_t logo_led_state_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+    struct razer_packet req = {0};
+    struct razer_packet resp = {0};
+    req = get_razer_report(0x03, 0x82, 0x03);
+    req.args[0] = VARSTORE;
+    req.args[1] = LOGO_LED;
+
+    resp = send_payload(laptop.usb_dev, &req);
+    return sprintf(buf, "%d\n", resp.args[2]);
+}
+
+static ssize_t logo_led_state_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+    unsigned long x;
+    struct razer_packet req = {0};
+    if (kstrtol(buf, 10, &x) ){
+		#ifdef DEBUG
+		dev_warn(dev, "User entered an invalid input for logo state");
+		#endif
+		return -EINVAL;
+    }
+
+    if(x > 0)
+    {
+        req = get_razer_report(0x03, 0x02, 0x03);
+        req.args[0] = VARSTORE;
+        req.args[1] = LOGO_LED;
+        req.args[2] = clamp_u8(x, 0x00, 0x02);
+        send_payload(laptop.usb_dev, &req);
+    }
+
+    req = get_razer_report(0x03, 0x00, 0x03);
+    req.args[0] = VARSTORE;
+    req.args[1] = LOGO_LED;
+    req.args[2] = clamp_u8(x, 0x00, 0x01);
+
+    send_payload(laptop.usb_dev, &req);
+
+    return count;
+}
+
 // Set our device attributes in sysfs
 static DEVICE_ATTR_RW(fan_rpm);
 static DEVICE_ATTR_RW(power_mode);
 static DEVICE_ATTR_RW(cpu_boost);
 static DEVICE_ATTR_RW(gpu_boost);
 static DEVICE_ATTR_WO(key_colour_map);
+static DEVICE_ATTR_RW(logo_led_state);
 static DEVICE_ATTR_RO(product);
 
 static int backlight_sysfs_set(struct led_classdev *led_cdev, enum led_brightness brightness) {
@@ -200,6 +243,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     laptop.power_mode = 0; // Normal
     laptop.cpu_boost = 1; // equal to Normal
     laptop.gpu_boost = 1; // equal to Normal
+    laptop.logo_led_state = 0; // off by deffault
     laptop.product_id = hdev->product; // Product id
     laptop.usb_dev = usb_dev;
 
@@ -213,6 +257,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     device_create_file(&hdev->dev, &dev_attr_cpu_boost);
     device_create_file(&hdev->dev, &dev_attr_gpu_boost);
     device_create_file(&hdev->dev, &dev_attr_key_colour_map);
+    device_create_file(&hdev->dev, &dev_attr_logo_led_state);
     device_create_file(&hdev->dev, &dev_attr_product);
 
     // Now init the backlight stuff - Only do it once!
@@ -227,6 +272,8 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
 
     // Now set driver data
     hid_set_drvdata(hdev, &laptop);
+    dev_set_drvdata(&hdev->dev, &laptop);
+
     if (hid_parse(hdev)) {
         hid_err(hdev, "Failed to parse device!\n");
         return -ENODEV;
@@ -235,23 +282,28 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
         hid_err(hdev, "Failed to start device!\n");
         return -ENODEV;
     }
+
     return 0;
 }
 
 // Called on unload
-static void razer_laptop_remove(struct hid_device *hdev) {
+static void razer_laptop_remove(struct hid_device *hdev)
+{
+    struct usb_interface *intf = to_usb_interface(hdev->dev.parent);
 
     device_remove_file(&hdev->dev, &dev_attr_fan_rpm);
     device_remove_file(&hdev->dev, &dev_attr_power_mode);
     device_remove_file(&hdev->dev, &dev_attr_cpu_boost);
     device_remove_file(&hdev->dev, &dev_attr_gpu_boost);
     device_remove_file(&hdev->dev, &dev_attr_key_colour_map);
+    device_remove_file(&hdev->dev, &dev_attr_logo_led_state);
     device_remove_file(&hdev->dev, &dev_attr_product);
     if (loaded) { // Ensure this only happens once!
         led_classdev_unregister(&kbd_backlight);
         loaded = 0;
     }
     hid_hw_stop(hdev);
+    dev_info(&intf->dev, "Razer Device disconnected\n");
 }
 
 // Support list for module
