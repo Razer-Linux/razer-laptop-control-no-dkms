@@ -156,7 +156,7 @@ struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet
 
     request_report->crc = crc(request_report);
 
-    retval = get_usb_responce(usb_dev, request_report, &response_report, 600, 800); //min max as parameters ? in openrazer ther are not
+    retval = get_usb_responce(usb_dev, request_report, &response_report, 900, 1000); //min max as parameters ? in openrazer ther are not
 
     if(retval == 0) {
         // Check the packet number, class and command are the same
