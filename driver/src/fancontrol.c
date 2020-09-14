@@ -156,6 +156,7 @@ int get_power_mode(struct razer_laptop *laptop)
     int power_mode = 0;
     struct razer_packet report = {0};
     struct razer_packet response = {0};
+    mutex_lock(&laptop->lock);
     report = get_razer_report(0x0d, 0x82, 0x04);
     report.args[0] = 0x00;
     report.args[1] = 0x01;
@@ -163,7 +164,8 @@ int get_power_mode(struct razer_laptop *laptop)
     report.args[3] = 0x00;
     response = send_payload(laptop->usb_dev, &report);
 
-    power_mode = report.args[2];
+    power_mode = response.args[2];
+    mutex_unlock(&laptop->lock);
 
     return power_mode;
 }
@@ -173,6 +175,7 @@ int get_gpu_boost_mode(struct razer_laptop *laptop)
     int boost = 0;
     struct razer_packet report = {0};
     struct razer_packet response = {0};
+    mutex_lock(&laptop->lock);
     report = get_razer_report(0x0d, 0x82, 0x04);
     report.args[0] = 0x00;
     report.args[1] = 0x01;
@@ -180,7 +183,7 @@ int get_gpu_boost_mode(struct razer_laptop *laptop)
     report.args[3] = 0x00;
     response = send_payload(laptop->usb_dev, &report);
 
-    if(report.args[2] == 4)
+    if(response.args[2] == 4)
     {
         report = get_razer_report(0x0d, 0x87, 0x03);
         // Read gpu boost
@@ -190,6 +193,7 @@ int get_gpu_boost_mode(struct razer_laptop *laptop)
         response = send_payload(laptop->usb_dev, &report);
         boost = response.args[2];
     }
+    mutex_unlock(&laptop->lock);
 
     return boost;
 }
@@ -199,6 +203,7 @@ int get_cpu_boost_mode(struct razer_laptop *laptop)
     int boost = 0;
     struct razer_packet report = {0};
     struct razer_packet response = {0};
+    mutex_lock(&laptop->lock);
     report = get_razer_report(0x0d, 0x82, 0x04);
     report.args[0] = 0x00;
     report.args[1] = 0x01;
@@ -206,7 +211,7 @@ int get_cpu_boost_mode(struct razer_laptop *laptop)
     report.args[3] = 0x00;
     response = send_payload(laptop->usb_dev, &report);
 
-    if(report.args[2] == 4)
+    if(response.args[2] == 4)
     {
         report = get_razer_report(0x0d, 0x87, 0x03);
         // Read gpu boost
@@ -216,6 +221,7 @@ int get_cpu_boost_mode(struct razer_laptop *laptop)
         response = send_payload(laptop->usb_dev, &report);
         boost = response.args[2];
     }
+    mutex_unlock(&laptop->lock);
 
     return boost;
 }
