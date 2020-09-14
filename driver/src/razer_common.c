@@ -44,9 +44,16 @@ static ssize_t key_colour_map_store(struct device *dev, struct device_attribute 
 		memcpy(&matrix[i].keys, &buf[i*45], 45);
 		sendRowDataToProfile(laptop.usb_dev, i);
 	}
-	displayProfile(laptop.usb_dev, 0);
 	mutex_unlock(&laptop.lock);
 	return count;
+}
+
+static ssize_t custom_frame_mode_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count) {
+
+	mutex_lock(&laptop.lock);
+	displayProfile(laptop.usb_dev, NOSTORE);
+	mutex_unlock(&laptop.lock);
+    return count;
 }
 
 /**
@@ -54,7 +61,7 @@ static ssize_t key_colour_map_store(struct device *dev, struct device_attribute 
  */
 static ssize_t product_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%s\n", getDeviceDescription());
+	return sprintf(buf, "%s\n", getDeviceDescription(laptop.product_id));
 }
 
 /**
@@ -205,6 +212,7 @@ static DEVICE_ATTR_RW(power_mode);
 static DEVICE_ATTR_RW(cpu_boost);
 static DEVICE_ATTR_RW(gpu_boost);
 static DEVICE_ATTR_WO(key_colour_map);
+static DEVICE_ATTR_WO(custom_frame_mode);
 static DEVICE_ATTR_RW(logo_led_state);
 static DEVICE_ATTR_RO(product);
 
@@ -260,6 +268,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     device_create_file(&hdev->dev, &dev_attr_cpu_boost);
     device_create_file(&hdev->dev, &dev_attr_gpu_boost);
     device_create_file(&hdev->dev, &dev_attr_key_colour_map);
+    device_create_file(&hdev->dev, &dev_attr_custom_frame_mode);
     device_create_file(&hdev->dev, &dev_attr_logo_led_state);
     device_create_file(&hdev->dev, &dev_attr_product);
 
@@ -299,6 +308,7 @@ static void razer_laptop_remove(struct hid_device *hdev)
     device_remove_file(&hdev->dev, &dev_attr_cpu_boost);
     device_remove_file(&hdev->dev, &dev_attr_gpu_boost);
     device_remove_file(&hdev->dev, &dev_attr_key_colour_map);
+    device_remove_file(&hdev->dev, &dev_attr_custom_frame_mode);
     device_remove_file(&hdev->dev, &dev_attr_logo_led_state);
     device_remove_file(&hdev->dev, &dev_attr_product);
     if (loaded) { // Ensure this only happens once!

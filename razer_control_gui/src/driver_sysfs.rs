@@ -62,6 +62,10 @@ pub fn write_rgb_map(map: Vec<u8>) -> bool {
     return write_to_sysfs_raw("key_colour_map", map);
 }
 
+pub fn write_custom_mode_frame(custom_mode_frame: u8) -> bool {
+    return write_to_sysfs("custom_mode_frame", String::from(format!("{}", custom_mode_frame)));
+}
+
 // Brightness is read + write
 pub fn write_brightness(lvl: u8) -> bool {
     return write_to_sysfs("brightness", String::from(format!("{}", lvl)));

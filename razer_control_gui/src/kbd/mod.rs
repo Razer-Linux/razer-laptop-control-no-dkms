@@ -149,6 +149,7 @@ impl EffectManager {
         if self.layers.len() == 0 {
             self.render_board.set_kbd_colour(0, 0, 0); 
             self.render_board.update_kbd();
+            self.render_board.update_custom_mode();
         }
     }
 
@@ -168,6 +169,7 @@ impl EffectManager {
         // Don't forget to actually render the board
         self.last_update_ms = get_millis();
         self.render_board.update_kbd();
+        self.render_board.update_custom_mode();
     }
 
     pub fn save(&mut self) -> serde_json::value::Value {

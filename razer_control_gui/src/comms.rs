@@ -10,7 +10,7 @@ pub const SOCKET_PATH: &'static str = "/tmp/razercontrol-socket";
 pub enum DaemonCommand {
     SetFanSpeed { rpm: i32 },      // Fan speed
     GetFanSpeed(),                 // Get (Fan speed)
-    SetPowerMode { pwr: u8, cpu: u8, gpu: u8},      // Power mode
+    SetPowerMode { pwr: u8, cpu: u8, gpu: u8}, // Power mode
     GetPwrLevel(),                 // Get (Power mode)
     GetCPUBoost(),                 // Get (CPU boost)
     GetGPUBoost(),                 // Get (GPU boost)

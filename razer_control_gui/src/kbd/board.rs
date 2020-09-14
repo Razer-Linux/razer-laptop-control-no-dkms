@@ -208,6 +208,10 @@ impl KeyboardData {
         driver_sysfs::write_rgb_map(self.get_curr_state())
     }
 
+    pub fn update_custom_mode(&mut self) -> bool {
+        driver_sysfs::write_custom_mode_frame(1)
+    }
+
     /// Sets a specific key in the keyboard matrix to a colour
     pub fn set_key_colour(&mut self, row: usize, col: usize, r: u8, g: u8, b: u8) {
         if row >= ROWS {
