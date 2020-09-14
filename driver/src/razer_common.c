@@ -54,7 +54,7 @@ static ssize_t key_colour_map_store(struct device *dev, struct device_attribute 
  */
 static ssize_t product_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%s\n", getDeviceDescription(laptop.product_id));
+	return sprintf(buf, "%s\n", getDeviceDescription());
 }
 
 /**
@@ -70,7 +70,7 @@ static ssize_t fan_rpm_show(struct device *dev, struct device_attribute *attr, c
  */
 static ssize_t power_mode_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", laptop.power_mode);
+	return sprintf(buf, "%d\n", get_power_mode(&laptop));
 }
 
 static ssize_t fan_rpm_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -114,7 +114,7 @@ static ssize_t power_mode_store(struct device *dev, struct device_attribute *att
 
 static ssize_t cpu_boost_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", laptop.cpu_boost);
+	return sprintf(buf, "%d\n", get_cpu_boost_mode(&laptop));
 }
 
 
@@ -135,9 +135,8 @@ static ssize_t cpu_boost_store(struct device *dev, struct device_attribute *attr
 
 static ssize_t gpu_boost_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", laptop.gpu_boost);
+	return sprintf(buf, "%d\n", get_gpu_boost_mode(&laptop));
 }
-
 
 static ssize_t gpu_boost_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -333,7 +332,7 @@ static const struct hid_device_id table[] = {
 	{ HID_USB_DEVICE(RAZER_VENDOR_ID, BLADE_2017_PRO)},
 
 	{ HID_USB_DEVICE(RAZER_VENDOR_ID, BLADE_QHD)},
-	{ }
+	{ 0 }
 };
 MODULE_DEVICE_TABLE(hid, table);
 static struct hid_driver razer_sc_driver = {

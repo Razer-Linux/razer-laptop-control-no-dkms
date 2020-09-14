@@ -131,6 +131,9 @@ struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet
 void set_fan_rpm(unsigned long x, struct razer_laptop *laptop);
 int set_power_mode(unsigned long x, struct razer_laptop *laptop);
 int set_custom_power_mode(unsigned long cpu_boost, unsigned long gpu_boost, struct razer_laptop *laptop);
+int get_cpu_boost_mode(struct razer_laptop *laptop);
+int get_gpu_boost_mode(struct razer_laptop *laptop);
+int get_power_mode(struct razer_laptop *laptop);
 unsigned char clamp_u8(unsigned char value, unsigned char min, unsigned char max);
 unsigned short clamp_u16(unsigned short value, unsigned short min, unsigned short max);
 

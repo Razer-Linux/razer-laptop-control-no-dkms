@@ -150,6 +150,74 @@ int set_power_mode(unsigned long x, struct razer_laptop *laptop) {
     return 0;
 }
 
+int get_power_mode(struct razer_laptop *laptop)
+{
+    int power_mode = 0;
+    struct razer_packet report = {0};
+    struct razer_packet response = {0};
+    report = get_razer_report(0x0d, 0x82, 0x04);
+    report.args[0] = 0x00;
+    report.args[1] = 0x01;
+    report.args[2] = 0x00;
+    report.args[3] = 0x00;
+    response = send_payload(laptop->usb_dev, &report);
+
+    power_mode = report.args[2];
+
+    return power_mode;
+}
+
+int get_gpu_boost_mode(struct razer_laptop *laptop)
+{
+    int boost = 0;
+    struct razer_packet report = {0};
+    struct razer_packet response = {0};
+    report = get_razer_report(0x0d, 0x82, 0x04);
+    report.args[0] = 0x00;
+    report.args[1] = 0x01;
+    report.args[2] = 0x00;
+    report.args[3] = 0x00;
+    response = send_payload(laptop->usb_dev, &report);
+
+    if(report.args[2] == 4)
+    {
+        report = get_razer_report(0x0d, 0x87, 0x03);
+        // Read gpu boost
+        report.args[0] = 0x00;
+        report.args[1] = 0x02;
+        report.args[2] = 0x00;
+        response = send_payload(laptop->usb_dev, &report);
+        boost = response.args[2];
+    }
+
+    return boost;
+}
+
+int get_cpu_boost_mode(struct razer_laptop *laptop)
+{
+    int boost = 0;
+    struct razer_packet report = {0};
+    struct razer_packet response = {0};
+    report = get_razer_report(0x0d, 0x82, 0x04);
+    report.args[0] = 0x00;
+    report.args[1] = 0x01;
+    report.args[2] = 0x00;
+    report.args[3] = 0x00;
+    response = send_payload(laptop->usb_dev, &report);
+
+    if(report.args[2] == 4)
+    {
+        report = get_razer_report(0x0d, 0x87, 0x03);
+        // Read gpu boost
+        report.args[0] = 0x00;
+        report.args[1] = 0x01;
+        report.args[2] = 0x00;
+        response = send_payload(laptop->usb_dev, &report);
+        boost = response.args[2];
+    }
+
+    return boost;
+}
 int set_custom_power_mode(unsigned long cpu_boost, unsigned long gpu_boost, struct razer_laptop *laptop)
 {
     mutex_lock(&laptop->lock);
