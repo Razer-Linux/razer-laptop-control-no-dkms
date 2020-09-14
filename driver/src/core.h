@@ -120,7 +120,7 @@ struct razer_packet {
     __u8 reserved; // 0x00
 };
 
-char *getDeviceDescription(int product_id);
+const char *getDeviceDescription(void);
 __u8 crc(struct razer_packet *buffer);
 int send_control_message(struct usb_device *usb_dev, void const *buffer, unsigned long minWait, unsigned long maxWait);
 int get_usb_responce(struct usb_device *usb_dev, struct razer_packet* req_buffer, struct razer_packet* resp_buffer, unsigned long minWait, unsigned long maxWait);

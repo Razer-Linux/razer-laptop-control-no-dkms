@@ -235,7 +235,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
         // Found the mouse - unload!
         return -ENODEV;
     }
-    dev_info(&intf->dev, "Found supported laptop: %s\n", getDeviceDescription(hdev->product));
+    dev_info(&intf->dev, "Found supported laptop: %s\n", getDeviceDescription());
 
     mutex_init(&laptop.lock);
     // When the driver first loads (At boot), we know these will be the default values:

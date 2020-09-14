@@ -1,60 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "core.h"
+#include <linux/dmi.h>
 
 
 /**
  * Returns a pointer to string of the product name of the device
  */
-char *getDeviceDescription(int product_id)
+const char *getDeviceDescription(void)
 {
-	switch (product_id) {
-	    // 15" laptops
-	    case BLADE_2016_END:
-	        return "Blade 15\" 2016";
-	    case BLADE_2018_ADV:
-	        return "Blade 2018 15\" advanced";
-	    case BLADE_2018_BASE:
-	        return "Blade 2018 15\" base";
-	    case BLADE_2018_MERC:
-	        return "Blade 2018 15\" Mercury edition";
-	    case BLADE_2019_BASE:
-	        return "Blade 2019 15\" base";
-	    case BLADE_2019_ADV:
-            return "Blade 2019 15\" advanced";
-	    case BLADE_2019_MERC:
-	        return "Blade 2019 15\" Mercury edition";
-	    case BLADE_2020_BASE:
-	        return "Blade 2020 15\" base";
-	    case BLADE_2020_ADV:
-	        return "Blade 2020 15\" advanced";
-
-        // Stealth's
-	    case BLADE_2017_STEALTH_MID:
-	        return "Blade 2017 stealth";
-	    case BLADE_2017_STEALTH_END:
-	        return "late Blade 2017 stealth";
-	    case BLADE_2019_STEALTH:
-	        return "Blade 2019 stealth";
-	    case BLADE_2019_STEALTH_GTX:
-	        return "Blade 2019 stealth (With GTX)";
-	    case BLADE_2020_STEALTH:
-		return "Blade 2020 stealth";
-
-    // Pro laptops laptops
-	    case BLADE_PRO_2019:
-	        return "Blade 2019 pro";
-	    case BLADE_2018_PRO_FHD:
-	        return "Blade 2018 pro FHD";
-	    case BLADE_2017_PRO:
-	        return "Blade 2017 pro";
-	    case BLADE_2016_PRO:
-	        return "Blade 2016 pro";
-    // Other?
-	    case BLADE_QHD:
-	        return "Blade QHD";
-	default:
-		return "UNKNOWN";
-	}
+    return dmi_get_system_info(DMI_PRODUCT_NAME);
 }
 
 /**
