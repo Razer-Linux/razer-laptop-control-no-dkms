@@ -2,9 +2,6 @@
 
 struct row_data matrix[5];
 
-// TODO set keyboard in driver mode when init
-// TODO set keyboard in normal mode when deinit
-
 
 int displayMatrix(struct usb_device *usb) {
     int row;
