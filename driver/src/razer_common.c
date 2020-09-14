@@ -157,11 +157,13 @@ static ssize_t logo_led_state_show(struct device *dev, struct device_attribute *
 {
     struct razer_packet req = {0};
     struct razer_packet resp = {0};
+    mutex_lock(&laptop.lock);
     req = get_razer_report(0x03, 0x82, 0x03);
     req.args[0] = VARSTORE;
     req.args[1] = LOGO_LED;
 
     resp = send_payload(laptop.usb_dev, &req);
+    mutex_unlock(&laptop.lock);
     return sprintf(buf, "%d\n", resp.args[2]);
 }
 
@@ -176,6 +178,7 @@ static ssize_t logo_led_state_store(struct device *dev, struct device_attribute 
 		return -EINVAL;
     }
 
+    mutex_lock(&laptop.lock);
     if(x > 0)
     {
         req = get_razer_report(0x03, 0x02, 0x03);
@@ -191,6 +194,7 @@ static ssize_t logo_led_state_store(struct device *dev, struct device_attribute 
     req.args[2] = clamp_u8(x, 0x00, 0x01);
 
     send_payload(laptop.usb_dev, &req);
+    mutex_unlock(&laptop.lock);
 
     return count;
 }
