@@ -70,7 +70,6 @@ typedef struct razer_laptop {
     __u8 power_mode; // Power mode (0 = normal, 1 = gaming, 2 = creator, 4 = custom)
     __u8 cpu_boost; // only for custom mode
     __u8 gpu_boost; // only for custom mode
-    __u8 logo_led_state;
     keyboard_info kbd; // Keyboard data
 } razer_laptop;
 

@@ -1,4 +1,4 @@
-->// SPDX-License-Identifier: GPL-2.0
+// SPDX-License-Identifier: GPL-2.0
 #include <linux/hid.h>
 #include <linux/usb/input.h>
 #include <linux/kernel.h>
@@ -217,13 +217,13 @@ static DEVICE_ATTR_RW(logo_led_state);
 static DEVICE_ATTR_RO(product);
 
 static int backlight_sysfs_set(struct led_classdev *led_cdev, enum led_brightness brightness) {
-    struct usb_interface *intf = to_usb_interface(led_cdev->dev.parent);
+    struct usb_interface *intf = to_usb_interface(led_cdev->dev->parent);
     struct usb_device *usb_dev = interface_to_usbdev(intf);
     return sendBrightness(usb_dev, (__u8) brightness);
 }
 
-static enum led_brightness backlight_sysfs_get(struct led_classdev *ledclass) {
-    struct usb_interface *intf = to_usb_interface(led_cdev->dev.parent);
+static enum led_brightness backlight_sysfs_get(struct led_classdev *led_cdev) {
+    struct usb_interface *intf = to_usb_interface(led_cdev->dev->parent);
     struct usb_device *usb_dev = interface_to_usbdev(intf);
     return getBrightness(usb_dev);
 }
