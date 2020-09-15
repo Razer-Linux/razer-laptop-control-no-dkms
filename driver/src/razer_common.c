@@ -326,8 +326,8 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     loaded = 1;
 
     // Now set driver data
-    hid_set_drvdata(hdev, &laptop);
-    dev_set_drvdata(&hdev->dev, &laptop);
+    hid_set_drvdata(hdev, laptop);
+    dev_set_drvdata(&hdev->dev, laptop);
 
     if (hid_parse(hdev)) {
         hid_err(hdev, "Failed to parse device!\n");
