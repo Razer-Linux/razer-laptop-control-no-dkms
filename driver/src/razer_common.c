@@ -18,6 +18,30 @@ MODULE_VERSION("1.3.0");
 static int loaded = 0;
 /* static razer_laptop laptop = {0x00}; */
 
+/**
+ * Device mode function
+ */
+static void razer_set_device_mode(struct usb_device *usb_dev, unsigned char mode, unsigned char param)
+{
+    static bool once = false;
+    struct razer_packet report = get_razer_report(0x00, 0x04, 0x02);
+
+    if(once == false)
+    {
+        if(mode != 0x00 && mode != 0x03) { // Explicitly blocking the 0x02 mode
+            mode = 0x00;
+        }
+        if(param != 0x00) {
+            param = 0x00;
+        }
+
+        report.args[0] = mode;
+        report.args[1] = param;
+
+        send_payload(usb_dev, &report);
+        once = true;
+    }
+}
 
 /**
  * Function to send RGB data to keyboard to display
@@ -45,6 +69,7 @@ static ssize_t key_colour_map_store(struct device *dev, struct device_attribute 
 		return -EINVAL;
 	}
 	mutex_lock(&laptop->lock);
+    razer_set_device_mode(usb_dev, 0x03, 0x00);
 	for (i = 0; i <= 5; i++) {
 		memcpy(&matrix[i].keys, &buf[i*45], 45);
 		sendRowDataToProfile(usb_dev, i);
@@ -326,7 +351,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     loaded = 1;
 
     // Now set driver data
-    hid_set_drvdata(hdev, laptop);
+    /* hid_set_drvdata(hdev, laptop); */
     dev_set_drvdata(&hdev->dev, laptop);
 
     if (hid_parse(hdev)) {
