@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const ANIMATION_FPS: u64 = 30; // 33 ms ~= 30fps
+const ANIMATION_FPS: u64 = 10; // 33 ms ~= 30fps
 
 pub const ANIMATION_SLEEP_MS: u64 = (1000.0 / ANIMATION_FPS as f32) as u64;
 
