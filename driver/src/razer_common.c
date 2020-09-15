@@ -237,12 +237,12 @@ static DEVICE_ATTR_RO(product);
 static int backlight_sysfs_set(struct led_classdev *led_cdev, enum led_brightness brightness) {
     struct usb_interface *intf = to_usb_interface(led_cdev->dev->parent);
     struct usb_device *usb_dev = interface_to_usbdev(intf);
-    /* struct razer_laptop *laptop = dev_get_drvdata(led_cdev->dev); */
+    struct razer_laptop *laptop = dev_get_drvdata(led_cdev->dev);
 
     int res = 0;
-    /* mutex_lock(&laptop->lock); */
+    mutex_lock(&laptop->lock);
     res = sendBrightness(usb_dev, (__u8) brightness);
-    /* mutex_unlock(&laptop->lock); */
+    mutex_unlock(&laptop->lock);
 
     return res;
 }
@@ -250,12 +250,12 @@ static int backlight_sysfs_set(struct led_classdev *led_cdev, enum led_brightnes
 static enum led_brightness backlight_sysfs_get(struct led_classdev *led_cdev) {
     struct usb_interface *intf = to_usb_interface(led_cdev->dev->parent);
     struct usb_device *usb_dev = interface_to_usbdev(intf);
-    /* struct razer_laptop *laptop = dev_get_drvdata(led_cdev->dev); */
+    struct razer_laptop *laptop = dev_get_drvdata(led_cdev->dev);
 
     int res = 0;
-    /* mutex_lock(&laptop->lock); */
+    mutex_lock(&laptop->lock);
     res = getBrightness(usb_dev);
-    /* mutex_unlock(&laptop->lock); */
+    mutex_unlock(&laptop->lock);
 
     return res;
 }
@@ -328,6 +328,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     // Now set driver data
     hid_set_drvdata(hdev, laptop);
     dev_set_drvdata(&hdev->dev, laptop);
+    dev_set_drvdata(kbd_backlight.dev, laptop);
 
     if (hid_parse(hdev)) {
         hid_err(hdev, "Failed to parse device!\n");
