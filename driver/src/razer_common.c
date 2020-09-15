@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+->// SPDX-License-Identifier: GPL-2.0
 #include <linux/hid.h>
 #include <linux/usb/input.h>
 #include <linux/kernel.h>
@@ -217,11 +217,15 @@ static DEVICE_ATTR_RW(logo_led_state);
 static DEVICE_ATTR_RO(product);
 
 static int backlight_sysfs_set(struct led_classdev *led_cdev, enum led_brightness brightness) {
-    return sendBrightness(laptop.usb_dev, (__u8) brightness);
+    struct usb_interface *intf = to_usb_interface(led_cdev->dev.parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    return sendBrightness(usb_dev, (__u8) brightness);
 }
 
 static enum led_brightness backlight_sysfs_get(struct led_classdev *ledclass) {
-    return getBrightness(laptop.usb_dev);
+    struct usb_interface *intf = to_usb_interface(led_cdev->dev.parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    return getBrightness(usb_dev);
 }
 
 static struct led_classdev kbd_backlight = {
@@ -238,6 +242,7 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     int rc;
     struct usb_interface *intf;
     struct usb_device *usb_dev;
+    /* struct razer_laptop *laptop; */
     intf = to_usb_interface(hdev->dev.parent);
     usb_dev = interface_to_usbdev(intf);
 
@@ -254,7 +259,6 @@ static int razer_laptop_probe(struct hid_device *hdev, const struct hid_device_i
     laptop.power_mode = 0; // Normal
     laptop.cpu_boost = 1; // equal to Normal
     laptop.gpu_boost = 1; // equal to Normal
-    laptop.logo_led_state = 0; // off by deffault
     laptop.product_id = hdev->product; // Product id
     laptop.usb_dev = usb_dev;
 
