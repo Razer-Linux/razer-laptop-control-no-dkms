@@ -11,6 +11,14 @@
 #include "fancontrol.h"
 #include "defines.h"
 
+// Macro to create device files
+#define CREATE_DEVICE_FILE(dev, type) \
+do { \
+    if(device_create_file(dev, type)) { \
+        goto exit_free; \
+    } \
+} while (0)
+
 // LED STORAGE Options
 #define NOSTORE          0x00
 #define VARSTORE         0x01
@@ -65,7 +73,6 @@ typedef struct {
 typedef struct razer_laptop {
     int product_id; // Product ID - Used for working out device capabilities
     struct mutex lock; // Lock mutex
-    struct usb_device *usb_dev;	// USB Device for communication
     __u16 fan_rpm; // Fan RPM Set by driver (0 if it is auto!)
     __u8 power_mode; // Power mode (0 = normal, 1 = gaming, 2 = creator, 4 = custom)
     __u8 cpu_boost; // only for custom mode
@@ -127,12 +134,13 @@ void print_erroneous_report(struct razer_packet* report, char* driver_name, char
 struct razer_packet get_razer_report(unsigned char command_class, unsigned char command_id, unsigned char data_size);
 struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet *request_report);
 
-void set_fan_rpm(unsigned long x, struct razer_laptop *laptop);
-int set_power_mode(unsigned long x, struct razer_laptop *laptop);
-int set_custom_power_mode(unsigned long cpu_boost, unsigned long gpu_boost, struct razer_laptop *laptop);
-int get_cpu_boost_mode(struct razer_laptop *laptop);
-int get_gpu_boost_mode(struct razer_laptop *laptop);
-int get_power_mode(struct razer_laptop *laptop);
+void set_fan_rpm(unsigned long x, struct device *dev);
+int set_power_mode(unsigned long x, struct device *dev);
+int set_cpu_boost_mode(unsigned long cpu_boost, struct device *dev);
+int get_cpu_boost_mode(struct device *dev);
+int set_gpu_boost_mode(unsigned long gpu_boost, struct device *dev);
+int get_gpu_boost_mode(struct device *dev);
+int get_power_mode(struct device *dev);
 unsigned char clamp_u8(unsigned char value, unsigned char min, unsigned char max);
 unsigned short clamp_u16(unsigned short value, unsigned short min, unsigned short max);
 

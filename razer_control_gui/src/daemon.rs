@@ -63,9 +63,9 @@ fn main() {
     if let Ok(c) = CONFIG.lock() {
         // driver_sysfs::write_brightness(c.brightness);
         driver_sysfs::write_fan_rpm(c.fan_rpm);
-        driver_sysfs::write_power(c.power_mode);
         driver_sysfs::write_cpu_boost(c.cpu_boost);
         driver_sysfs::write_gpu_boost(c.gpu_boost);
+        driver_sysfs::write_power(c.power_mode);
         driver_sysfs::write_logo_state(c.logo_state);
         if let Ok(json) = config::Configuration::read_effects_file() {
             EFFECT_MANAGER.lock().unwrap().load_from_save(json);
@@ -141,9 +141,9 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                 x.write_to_file().unwrap();
             }
 
-            if driver_sysfs::write_power(pwr) {
-                if driver_sysfs::write_cpu_boost(cpu) {
-                    if driver_sysfs::write_gpu_boost(gpu) {
+            if driver_sysfs::write_cpu_boost(cpu) {
+                if driver_sysfs::write_gpu_boost(gpu) {
+                    if driver_sysfs::write_power(pwr) {
                         res = true;
                     }
                 }
