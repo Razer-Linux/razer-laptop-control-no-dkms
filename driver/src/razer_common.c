@@ -350,7 +350,7 @@ static const struct hid_device_id table[] = {
 };
 MODULE_DEVICE_TABLE(hid, table);
 static struct hid_driver razer_sc_driver = {
-	.name = "Razer laptop System control driver",
+	.name = "razerctrl",
 	.probe = razer_laptop_probe,
 	.remove = razer_laptop_remove,
 	.id_table = table,

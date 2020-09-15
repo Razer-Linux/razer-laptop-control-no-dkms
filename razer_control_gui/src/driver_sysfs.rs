@@ -4,7 +4,7 @@ use std::fs;
 
 // Driver path
 pub const DRIVER_DIR: &'static str =
-    "/sys/module/razercontrol/drivers/hid:Razer laptop System control driver";
+    "/sys/module/razercontrol/drivers/hid:razerctrl";
 
 lazy_static! {
     static ref SYSFS_PATH: Option<String> = {
