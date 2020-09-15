@@ -165,6 +165,9 @@ fn read_logo_mode() {
                 2 => "Breathing",
                 _ => "Unknown"
             };
+            println!("Current logo setting: {}", logo_state_desc);
+        } else {
+            eprintln!("Daemon responded with invalid data!");
         }
     }
 }

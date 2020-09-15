@@ -100,7 +100,7 @@ pub fn write_logo_state(logo_state: u8) -> bool {
 pub fn read_logo_state() -> u8 {
     return match read_from_sysfs("logo_led_state") {
         Some(x) => x.parse::<u8>().unwrap(),
-        none => 0,
+        None => 0,
     };
 }
 
