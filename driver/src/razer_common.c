@@ -18,6 +18,7 @@ MODULE_VERSION("1.3.0");
 static int loaded = 0;
 /* static razer_laptop laptop = {0x00}; */
 
+#if 0
 /**
  * Device mode function
  */
@@ -43,6 +44,7 @@ static void razer_set_device_mode(struct usb_device *usb_dev, unsigned char mode
     }
 }
 
+#endif
 /**
  * Function to send RGB data to keyboard to display
  * The keyboard is designed as a matrix with 6 rows (below is outline of my UK keyboard):
@@ -69,7 +71,7 @@ static ssize_t key_colour_map_store(struct device *dev, struct device_attribute 
 		return -EINVAL;
 	}
 	mutex_lock(&laptop->lock);
-    razer_set_device_mode(usb_dev, 0x03, 0x00);
+    /* razer_set_device_mode(usb_dev, 0x03, 0x00); */
 	for (i = 0; i <= 5; i++) {
 		memcpy(&matrix[i].keys, &buf[i*45], 45);
 		sendRowDataToProfile(usb_dev, i);
