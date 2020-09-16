@@ -135,7 +135,6 @@ struct razer_packet get_razer_report(unsigned char command_class, unsigned char 
 struct razer_packet send_payload(struct usb_device *usb_dev, struct razer_packet *request_report);
 
 void set_fan_rpm(unsigned long x, struct device *dev);
-int get_fan_rpm(struct device *dev);
 int set_power_mode(unsigned long x, struct device *dev);
 int set_cpu_boost_mode(unsigned long cpu_boost, struct device *dev);
 int get_cpu_boost_mode(struct device *dev);
