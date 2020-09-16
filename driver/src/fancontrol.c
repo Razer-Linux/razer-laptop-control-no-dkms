@@ -130,6 +130,25 @@ void set_fan_rpm(unsigned long x, struct device *dev)
     mutex_unlock(&laptop->lock);
 }
 
+int get_fan_rpm(struct device *dev)
+{
+    struct usb_interface *intf = to_usb_interface(dev->parent);
+    struct usb_device *usb_dev = interface_to_usbdev(intf);
+    struct razer_laptop *laptop = dev_get_drvdata(dev);
+
+    struct razer_packet report = get_razer_report(0x0d, 0x84, 0x03);
+    struct razer_packet response = {0};
+    report.transaction_id.id = 0x3F;
+
+    mutex_lock(&laptop->lock);
+    report.args[0] = 0x00;
+    report.args[1] = 0x01;
+    response = send_payload(usb_dev, &report);
+    mutex_unlock(&laptop->lock);
+
+    return report.args[2];
+}
+
 int set_power_mode(unsigned long x, struct device *dev)
 {
     struct usb_interface *intf = to_usb_interface(dev->parent);

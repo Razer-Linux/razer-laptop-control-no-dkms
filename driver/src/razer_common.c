@@ -106,8 +106,8 @@ static ssize_t product_show(struct device *dev, struct device_attribute *attr, c
  */
 static ssize_t fan_rpm_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-    struct razer_laptop *laptop = dev_get_drvdata(dev);
-	return sprintf(buf, "%d\n", laptop->fan_rpm);
+    /* struct razer_laptop *laptop = dev_get_drvdata(dev); */
+	return sprintf(buf, "%d\n", get_fan_rpm(dev));
 }
 
 /**
