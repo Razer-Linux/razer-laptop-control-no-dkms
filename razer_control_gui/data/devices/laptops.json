@@ -1,0 +1,136 @@
+
+[
+    {
+        "name": "Blade 15 2016",
+        "vid": "1532",
+        "pid": "0224",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2018 15 advanced",
+        "vid": "1532",
+        "pid": "0233",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2018 15 base",
+        "vid": "1532",
+        "pid": "023B",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2018 15 Mercury edition",
+        "vid": "1532",
+        "pid": "0240",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2019 15 base",
+        "vid": "1532",
+        "pid": "0246",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2019 15 advanced",
+        "vid": "1532",
+        "pid": "023A",
+        "features": ["creator_mode"],
+        "fan": [3500, 5300]
+    },
+    {
+        "name": "Blade 2019 15 Mercury edition",
+        "vid": "1532",
+        "pid": "0245",
+        "features": ["creator_mode"],
+        "fan": [3500, 5300]
+    },
+    {
+        "name": "Blade 2020 15 base",
+        "vid": "1532",
+        "pid": "0255",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2020 15 advanced",
+        "vid": "1532",
+        "pid": "0253",
+        "features": ["creator_mode", "boost"],
+        "fan": [3500, 5300]
+    },
+    {
+        "name": "Blade 2017 stealth",
+        "vid": "1532",
+        "pid": "022D",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "late Blade 2017 stealth",
+        "vid": "1532",
+        "pid": "0232",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2019 stealth",
+        "vid": "1532",
+        "pid": "0239",
+        "features": [],
+        "fan": [3500, 5300]
+    },
+    {
+        "name": "Blade 2019 stealth (With GTX)",
+        "vid": "1532",
+        "pid": "024A",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2020 stealth",
+        "vid": "1532",
+        "pid": "0252",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2019 pro",
+        "vid": "1532",
+        "pid": "0234",
+        "features": [],
+        "fan": [3500, 5300]
+    },
+    {
+        "name": "Blade 2018 pro FHD",
+        "vid": "1532",
+        "pid": "022F",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2017 pro",
+        "vid": "1532",
+        "pid": "0225",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade 2017 pro",
+        "vid": "1532",
+        "pid": "0210",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade QHD",
+        "vid": "1532",
+        "pid": "020F",
+        "features": [],
+        "fan": [3500, 5000]
+    }
+]

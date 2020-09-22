@@ -18,7 +18,10 @@ pub enum DaemonCommand {
     GetLogoLedState(),
     GetKeyboardRGB { layer: i32 }, // Layer ID
     GetCfg(),                      // Request curr settings for fan + power
-    SetEffect { name: String, params: Vec<u8> } // Set keyboard colour
+    SetEffect { name: String, params: Vec<u8> }, // Set keyboard colour
+    SetStandardEffect { name: String, params: Vec<u8> }, // Set keyboard colour
+    SetBrightness { val: u8 },
+    GetBrightness (),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -35,9 +38,13 @@ pub enum DaemonResponse {
     GetLogoLedState { logo_state: u8 },
     GetKeyboardRGB { layer: i32, rgbdata: Vec<u8> }, // Response (RGB) of 90 keys
     GetCfg { fan_rpm: i32, pwr: u8 },                // Fan speed, power mode
-    SetEffect { result: bool }                       // Set keyboard colour
+    SetEffect { result: bool },                       // Set keyboard colour
+    SetStandardEffect { result: bool },                       // Set keyboard colour
+    SetBrightness { result: bool },
+    GetBrightness { result: u8 },
 }
 
+#[allow(dead_code)]
 pub fn bind() -> Option<UnixStream> {
     if let Ok(socket) = UnixStream::connect(SOCKET_PATH) {
         return Some(socket);
@@ -46,6 +53,7 @@ pub fn bind() -> Option<UnixStream> {
     }
 }
 
+#[allow(dead_code)]
 pub fn create() -> Option<UnixListener> {
     if let Ok(_) = std::fs::metadata(SOCKET_PATH) {
         eprintln!("UNIX Socket already exists. Is another daemon running?");
@@ -63,6 +71,7 @@ pub fn create() -> Option<UnixListener> {
     return None;
 }
 
+#[allow(dead_code)]
 pub fn send_to_daemon(command: DaemonCommand, mut sock: UnixStream) -> Option<DaemonResponse> {
     if let Ok(encoded) = bincode::serialize(&command) {
         if sock.write_all(&encoded).is_ok() {
@@ -98,6 +107,7 @@ fn read_from_socked_resp(bytes: &[u8]) -> Option<DaemonResponse> {
 
 /// Deserializes incomming bytes in order to return
 /// a `DaemonCommand`. None is returned if deserializing failed
+#[allow(dead_code)]
 pub fn read_from_socket_req(bytes: &[u8]) -> Option<DaemonCommand> {
     match bincode::deserialize::<DaemonCommand>(bytes) {
         Ok(res) => {

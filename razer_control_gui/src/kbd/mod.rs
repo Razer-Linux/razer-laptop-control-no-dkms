@@ -1,5 +1,6 @@
-mod board;
+pub mod board;
 pub mod effects;
+use crate::device;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -81,7 +82,7 @@ impl EffectLayer {
         }
     }
 
-    fn from_save(mut json: serde_json::Value) -> Option<EffectLayer> {
+    fn from_save(json: serde_json::Value) -> Option<EffectLayer> {
         if json["key_mask"].is_null() || json["name"].is_null() || json["args"].is_null() {
             eprintln!("Missing data for effect!");
             return None;
@@ -116,7 +117,7 @@ impl EffectLayer {
     pub fn get_state(&mut self) -> Vec<u8> {
         self.effect.get_state()
     }
-
+    #[allow(dead_code)]
     pub fn get_mask(&mut self) -> Vec<bool> {
         self.key_mask.to_vec()
     }
@@ -143,17 +144,17 @@ impl EffectManager {
         self.layers.push(EffectLayer::new(effect, mask))
     }
 
-    pub fn pop_effect(&mut self) {
+    pub fn pop_effect(&mut self, laptop: &mut device::RazerLaptop) {
         self.layers.pop();
         // If no more layers, erase keyboard rendering and set it to black
         if self.layers.len() == 0 {
             self.render_board.set_kbd_colour(0, 0, 0); 
-            self.render_board.update_kbd();
-            self.render_board.update_custom_mode();
+            self.render_board.update_kbd(laptop);
+            self.render_board.update_custom_mode(laptop);
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, laptop: &mut device::RazerLaptop) {
         // Do nothing if we have no effects!
         if self.layers.len() == 0 {
             return;
@@ -168,8 +169,8 @@ impl EffectManager {
         }
         // Don't forget to actually render the board
         self.last_update_ms = get_millis();
-        self.render_board.update_kbd();
-        self.render_board.update_custom_mode();
+        self.render_board.update_kbd(laptop);
+        self.render_board.update_custom_mode(laptop);
     }
 
     pub fn save(&mut self) -> serde_json::value::Value {

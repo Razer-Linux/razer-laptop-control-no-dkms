@@ -1,5 +1,5 @@
-use std::env;
 mod comms;
+use std::{env, format};
 
 fn print_help(reason: &str) -> ! {
     let mut ret_code = 0;
@@ -13,19 +13,22 @@ fn print_help(reason: &str) -> ! {
     println!("./razer-cli write effect <effect name> <params>");
     println!("");
     println!("Where 'attr':");
-    println!("- fan -> Cooling fan RPM. 0 is automatic");
-    println!("- power   -> Power mode.");
+    println!("- fan         -> Cooling fan RPM. 0 is automatic");
+    println!("- power       -> Power mode.");
     println!("              0 = Balanced (Normal)");
     println!("              1 = Gaming");
     println!("              2 = Creator");
     println!("              4 = Custom ->");
-    println!("                          0..3 = cpu boost");
-    println!("                          0..2 = gpu boost");
+    println!("                  0..3 = cpu boost");
+    println!("                  0..2 = gpu boost");
     println!("");
-    println!("- logo   -> Logo mode.");
-    println!("              0 = Off");
-    println!("              1 = On");
-    println!("              2 = Breathing");
+    println!("- brightness  -> Logo mode.");
+    println!("                  0..100 percents");
+    println!("");
+    println!("- logo        -> Logo mode.");
+    println!("                  0 = Off");
+    println!("                  1 = On");
+    println!("                  2 = Breathing");
     println!("");
     println!("- effect:");
     println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
@@ -36,7 +39,6 @@ fn print_help(reason: &str) -> ! {
 }
 
 fn main() {
-    // Check if socket is OK
     if std::fs::metadata(comms::SOCKET_PATH).is_err() {
         eprintln!("Error. Socket doesn't exit. Is daemon running?");
         std::process::exit(1);
@@ -51,14 +53,21 @@ fn main() {
                 "fan" => read_fan_rpm(),
                 "power" => read_power_mode(),
                 "logo" => read_logo_mode(),
+                "brightness" => read_brigtness(),
                 _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
             }
         },
         "write" => {
+            
             // Special case for setting effect - lots of params
             if args[2].to_ascii_lowercase().as_str() == "effect" {
                 args.drain(0..3);
                 write_effect(args);
+                return;
+            }
+            if args[2].to_ascii_lowercase().as_str() == "standard_effect" {
+                args.drain(0..3);
+                write_standard_effect(args);
                 return;
             }
             if args[2].to_ascii_lowercase().as_str() == "power" {
@@ -73,6 +82,7 @@ fn main() {
                 match args[2].to_ascii_lowercase().as_str() {
                     "fan" => write_fan_speed(processed),
                     "logo" => write_logo_mode(processed as u8),
+                    "brightness" => write_brightness(processed as u8),
                     _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
                 }
             } else {
@@ -82,6 +92,34 @@ fn main() {
         _ => print_help(format!("Unrecognised argument: `{}`", args[1]).as_str())
     }
 }
+fn write_standard_effect(opt: Vec<String>) {
+    println!("Write standard effect: Args: {:?}", opt);
+    let name = opt[0].clone();
+    let mut params : Vec<u8> = vec![];
+    for i in 1..opt.len() {
+        if let Ok(x) = opt[i].parse::<u8>() {
+            params.push(x);
+        } else {
+            print_help(format!("Option for effect is not valid (Must be 0-255): `{}`", opt[i]).as_str())
+        }
+    }
+    println!("Params: {:?}", params);
+    send_standard_effect(name.to_ascii_lowercase(), params);
+}
+
+fn send_standard_effect(name: String, params: Vec<u8>) {
+    if let Some(r) = send_data(comms::DaemonCommand::SetStandardEffect { name, params }) {
+        if let comms::DaemonResponse::SetStandardEffect { result } = r {
+            match result {
+                true => println!("Effect set OK!"),
+                _ => eprintln!("Effect set FAIL!")
+            }
+        }
+    } else {
+        eprintln!("Unknown daemon error!");
+    }
+}
+
 
 fn write_effect(opt: Vec<String>) {
     println!("Write effect: Args: {:?}", opt);
@@ -264,6 +302,25 @@ fn write_pwr_mode(opt: Vec<String>) {
         eprintln!("Unknown error!");
     }
     
+}
+
+fn read_brigtness () {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetBrightness()) {
+        if let comms::DaemonResponse::GetBrightness { result } = resp {
+            println!("Current brightness: {}", result);
+        } else {
+            eprintln!("Daemon responded with invalid data!");
+        }
+    }
+}
+
+fn write_brightness(val: u8)
+{
+    if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { val } ) {
+        read_brigtness()
+    } else {
+        eprintln!("Unknown error!");
+    }
 }
 
 fn write_fan_speed(x: i32) {
