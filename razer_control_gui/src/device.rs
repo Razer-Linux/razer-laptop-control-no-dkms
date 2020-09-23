@@ -163,7 +163,7 @@ impl RazerLaptop {
     pub const CUSTOMFRAME:u8 = 0x05;
     pub const STATIC:u8 = 0x06;
     #[allow(dead_code)]
-    pub const STARLIGHT:u8 = 0x1;
+    pub const STARLIGHT:u8 = 0x19;
 
     pub fn new(name: String, features: Vec<String>, fan: Vec<u16>, device: hidapi::HidDevice) -> RazerLaptop {
         return RazerLaptop{

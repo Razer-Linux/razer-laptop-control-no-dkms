@@ -247,16 +247,16 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                         "off" => laptop.set_standard_effect(device::RazerLaptop::OFF, params),
                         "wave" => laptop.set_standard_effect(device::RazerLaptop::WAVE, params),
                         "reactive" => laptop.set_standard_effect(device::RazerLaptop::REACTIVE, params),
-                        "brathing" => false,
+                        "breathing" => laptop.set_standard_effect(device::RazerLaptop::BREATHING, params),
                         "spectrum" => laptop.set_standard_effect(device::RazerLaptop::SPECTRUM, params),
                         "static" => laptop.set_standard_effect(device::RazerLaptop::STATIC, params),
-                        "starlight" => false,
+                        "starlight" => laptop.set_standard_effect(device::RazerLaptop::STARLIGHT, params), 
                         _ => false,
                     };
                     res = _res;
 
                 }
-                Some(comms::DaemonResponse::SetEffect{result: res})
+                Some(comms::DaemonResponse::SetStandardEffect{result: res})
             }
 
         };
