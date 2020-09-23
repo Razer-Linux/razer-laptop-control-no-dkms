@@ -101,9 +101,9 @@ fn main() {
 
 
     thread::spawn(move || {
-        let dbus_system = Connection::new_session()
+        let dbus_session = Connection::new_session()
             .expect("failed to connect to D-Bus system bus");
-        let  proxy = dbus_system.with_proxy("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver", time::Duration::from_millis(5000));
+        let  proxy = dbus_session.with_proxy("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver", time::Duration::from_millis(5000));
         let _id = proxy.match_signal(|h: dbus_gnome_screensaver::OrgGnomeScreenSaverActiveChanged, _: &Connection, _: &Message| {
             if h.new_value {
                 if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
@@ -119,7 +119,7 @@ fn main() {
             }
             true
         });
-        loop { dbus_system.process(time::Duration::from_millis(1000)).unwrap(); }
+        loop { dbus_session.process(time::Duration::from_millis(1000)).unwrap(); }
     });
 
     if let Some(listener) = comms::create() {
@@ -239,6 +239,7 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
             }
 
             comms::DaemonCommand::SetStandardEffect{ name, params } => {
+                // TODO save standart effect may be struct ?
                 let mut res = false;
                 if let Ok(mut k) = EFFECT_MANAGER.lock() {
                     k.pop_effect(laptop); // Remove old layer
