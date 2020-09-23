@@ -104,7 +104,41 @@ fn write_standard_effect(opt: Vec<String>) {
         }
     }
     println!("Params: {:?}", params);
-    send_standard_effect(name.to_ascii_lowercase(), params);
+    match name.to_ascii_lowercase().as_str() {
+        "off" => {
+            if params.len() != 0 { print_help("No parameters are required") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "wave" => {
+            if params.len() != 1 { print_help("Wave require 1 parameter - direction") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "reactive" => {
+            if params.len() != 4 { print_help("Reactive require 4 parameters - speed r g b") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "breathing" => {
+            if params[0] == 1 && params.len() != 4 { print_help("Breathing single require 4 parameters - type r g b") }
+            if params[0] == 2 && params.len() != 7 { print_help("Breathing double require 7 parameters - type r1 g1 b1 r2 g2 b2") }
+            if params[0] == 3 && params.len() != 1 { print_help("Breathing random require 1 parameter - type") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "spectrum" => {
+            if params.len() != 0 { print_help("No parameters are required") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "static" => {
+            if params.len() != 3 { print_help("Static require 3 parameters - r, g ,b") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        },
+        "starlight" => {
+            if params[0] == 1 && params.len() != 5 { print_help("Starlight single require 5 parameters - type speed r g b") }
+            if params[0] == 2 && params.len() != 8 { print_help("Starlight double require 8 parameters - type speed r1 g1 b1 r2 g2 b2") }
+            if params[0] == 3 && params.len() != 2 { print_help("Starlight random require 2 parameter - type speed") }
+            send_standard_effect(name.to_ascii_lowercase(), params);
+        }, 
+        _ => print_help(format!("Unrecognised effect name: `{}`", name).as_str())
+    }
 }
 
 fn send_standard_effect(name: String, params: Vec<u8>) {
