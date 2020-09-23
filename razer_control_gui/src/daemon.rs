@@ -61,9 +61,9 @@ fn main() {
 
     if let Ok(c) = CONFIG.lock() {
         if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device(){
-            laptop.set_fan_rpm(c.fan_rpm as u16);
             laptop.set_brightness(c.brightness);
             laptop.set_power_mode(c.power_mode, c.cpu_boost, c.gpu_boost);
+            laptop.set_fan_rpm(c.fan_rpm as u16);
             laptop.set_logo_led_state(c.logo_state);
             if let Ok(json) = config::Configuration::read_effects_file() {
                 EFFECT_MANAGER.lock().unwrap().load_from_save(json);
@@ -210,7 +210,7 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                 })
             }
             comms::DaemonCommand::GetFanSpeed() => Some(comms::DaemonResponse::GetFanSpeed { rpm: laptop.get_fan_rpm() as i32 }),
-            comms::DaemonCommand::GetPwrLevel() => Some(comms::DaemonResponse::GetPwrLevel { pwr: laptop.get_power_mode() }),
+            comms::DaemonCommand::GetPwrLevel() => Some(comms::DaemonResponse::GetPwrLevel { pwr: laptop.get_power_mode(0x01) }),
             comms::DaemonCommand::GetCPUBoost() => Some(comms::DaemonResponse::GetCPUBoost { cpu: laptop.get_cpu_boost() }),
             comms::DaemonCommand::GetGPUBoost() => Some(comms::DaemonResponse::GetGPUBoost { gpu: laptop.get_gpu_boost() }),
             comms::DaemonCommand::SetEffect{ name, params } => {

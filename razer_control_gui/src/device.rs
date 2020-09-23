@@ -247,16 +247,32 @@ impl RazerLaptop {
         return false;
     }
 
-    pub fn get_power_mode(&mut self) -> u8 {
+    pub fn get_power_mode(&mut self, zone: u8) -> u8 {
         let mut report: RazerPacket = RazerPacket::new(0x0d, 0x82, 0x04);
         report.args[0] = 0x00;
-        report.args[1] = 0x01;
+        report.args[1] = zone;
         report.args[2] = 0x00;
         report.args[3] = 0x00;
         if let Some(response) = self.send_report(report) {
             return response.args[2];
         }
         return 0;
+    }
+
+    fn set_power(&mut self, zone: u8) -> bool {
+        let mut report: RazerPacket = RazerPacket::new(0x0d, 0x02, 0x04);
+        report.args[0] = 0x00;
+        report.args[1] = zone;
+        report.args[2] = self.power;
+        match self.fan_rpm {
+            0 => report.args[3] = 0x00,
+            _ => report.args[3] = 0x01
+        }
+        if let Some(_) = self.send_report(report) {
+            return  true;
+        }
+
+        return false;
     }
 
     pub fn get_cpu_boost(&mut self) -> u8 {
@@ -313,101 +329,52 @@ impl RazerLaptop {
                 mode = 1;
             }
             self.power = mode;
-            let mut report: RazerPacket = RazerPacket::new(0x0d, 0x02, 0x04);
-            report.args[0] = 0x00;
-            report.args[1] = 0x01;
-            report.args[2] = self.power;
-            match self.fan_rpm {
-                0 => report.args[3] = 0x00,
-                _ => report.args[3] = 0x01
-            }
-            self.send_report(report);
+            self.set_power(0x01);
+            self.set_power(0x02);
         } else if mode == 4 {
             self.power =  mode;
-            let device_mode = self.get_power_mode();
-            if device_mode != mode {
-                let mut report: RazerPacket = RazerPacket::new(0x0d, 0x02, 0x04);
-                // set power mode
-                report.args[0] = 0x00;
-                report.args[1] = 0x01;
-                report.args[2] = self.power;
-                report.args[3] = 0x00;
-                self.send_report(report);
-            }
-            if self.get_cpu_boost() != cpu_boost {
-                self.set_cpu_boost(cpu_boost);
-            }
-            if self.get_gpu_boost() != gpu_boost {
-                self.set_gpu_boost(gpu_boost);
-            }
-            if device_mode != mode {
-                let mut report: RazerPacket = RazerPacket::new(0x0d, 0x82, 0x04);
-                // set power mode
-                report.args[0] = 0x00;
-                report.args[1] = 0x02;
-                report.args[2] = 0x00;
-                report.args[3] = 0x00;
-                self.send_report(report);
-
-                report = RazerPacket::new(0x0d, 0x82, 0x04);
-                report.args[0] = 0x00;
-                report.args[1] = 0x02;
-                report.args[2] = self.power;
-                report.args[3] = 0x00;
-                self.send_report(report);
-            }
+            self.fan_rpm = 0;
+            self.get_power_mode(0x01);
+            self.set_power(0x01);
+            self.get_cpu_boost();
+            self.set_cpu_boost(cpu_boost);
+            self.get_gpu_boost();
+            self.set_gpu_boost(gpu_boost);
+            self.get_power_mode(0x02);
+            self.set_power(0x02);
         }
 
         return true;
     }
 
+    fn set_rpm(&mut self, zone: u8) -> bool {
+        let mut report:RazerPacket = RazerPacket::new(0x0d, 0x01, 0x03);
+        // Set fan RPM
+        report.args[0] = 0x00;
+        report.args[1] = zone;
+        report.args[2] = self.fan_rpm;
+        if let Some(_) = self.send_report(report) {
+            return true;
+        }
+
+        return false;
+    }
+
     pub fn set_fan_rpm(&mut self, value: u16) -> bool {
         if self.power != 4 {
-            if value != 0 {
-                let req_speed = self.clamp_fan(value);
-                self.fan_rpm = req_speed;
-                self.get_power_mode();
-                let mut report: RazerPacket = RazerPacket::new(0x0d, 0x02, 0x04);
-                report.args[0] = 0x00;
-                report.args[1] = 0x01;
-                report.args[2] = self.power;
-                match self.fan_rpm {
-                    0 => report.args[3] = 0x00,
-                    _ => report.args[3] = 0x01
-                }
-                self.send_report(report);
-                report = RazerPacket::new(0x0d, 0x01, 0x03);
-                // Set fan RPM
-                report.args[0] = 0x00;
-                report.args[1] = 0x01;
-                report.args[2] = req_speed;
-                self.send_report(report);
-                report = RazerPacket::new(0x0d, 0x82, 0x04);
-                // set power mode
-                report.args[0] = 0x00;
-                report.args[1] = 0x02;
-                report.args[2] = 0x00;
-                report.args[3] = 0x00;
-                self.send_report(report);
-            } else {
-                self.fan_rpm = value as u8;
+            match value == 0 {
+                true => self.fan_rpm = value as u8,
+                false => self.fan_rpm = self.clamp_fan(value),
             }
-            let mut report: RazerPacket = RazerPacket::new(0x0d, 0x82, 0x04);
-            report.args[0] = 0x00;
-            report.args[1] = 0x02;
-            report.args[2] = self.power;
-            match self.fan_rpm {
-                0 => report.args[3] = 0x00,
-                _ => report.args[3] = 0x01
-            }
-            self.send_report(report);
+            self.get_power_mode(0x01);
+            self.set_power(0x01);
             if value != 0 {
-                report = RazerPacket::new(0x0d, 0x82, 0x04);
-                report.args[0] = 0x00;
-                report.args[1] = 0x02;
-                report.args[2] = self.power;
-                report.args[3] = 0x00;
-                self.send_report(report);
+                self.set_rpm(0x01);
+            }
+            self.get_power_mode(0x02);
+            self.set_power(0x02);
+            if value != 0 {
+                self.set_rpm(0x02);
             }
         }
 
