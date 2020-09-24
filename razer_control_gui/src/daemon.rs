@@ -137,8 +137,17 @@ fn main() {
     thread::spawn(move || {
         let dbus_system = Connection::new_system()
             .expect("failed to connect to D-Bus system bus");
-        let proxy_system = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/line_power_AC0", time::Duration::from_millis(5000));
-        let _id = proxy_system.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
+        let proxy_ac = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/line_power_AC0", time::Duration::from_millis(5000));
+        let _id = proxy_ac.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
+            println!("interface name {:?}", h.interface_name);
+            for (s, c) in h.changed_properties.iter() {
+                println!("invalidated_property {:?}", s);
+                print_refarg(c);
+            }
+            true
+        });
+        let proxy_battery = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/battery_BAT0", time::Duration::from_millis(5000));
+        let _id = proxy_battery.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
             println!("interface name {:?}", h.interface_name);
             for (s, c) in h.changed_properties.iter() {
                 println!("invalidated_property {:?}", s);
