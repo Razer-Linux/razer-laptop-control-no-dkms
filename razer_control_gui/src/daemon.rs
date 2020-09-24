@@ -33,14 +33,6 @@ lazy_static! {
     };
 }
 
-fn print_refarg(value: &dyn arg::RefArg) {
-    // We don't know what type the value is. We'll try a few and fall back to
-    // debug printing if the value is more complex than that.
-    if let Some(s) = value.as_str() { println!("as string {}", s); }
-    else if let Some(i) = value.as_i64() { println!("as int {}", i); }
-    else { println!("unknown {:?}", value); }
-}
-
 // Main function for daemon
 fn main() {
     DEV_MANAGER.lock().unwrap().discover_devices();
@@ -139,20 +131,19 @@ fn main() {
             .expect("failed to connect to D-Bus system bus");
         let proxy_ac = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/line_power_AC0", time::Duration::from_millis(5000));
         let _id = proxy_ac.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
-            println!("interface name {:?}", h.interface_name);
-            for (s, c) in h.changed_properties.iter() {
-                println!("invalidated_property {:?}", s);
-                print_refarg(c);
+            let online: Option<&bool> = arg::prop_cast(&h.changed_properties, "Online");
+            if let Some(online) = online {
+                println!("online: {:?}", online);
             }
             true
         });
         let proxy_battery = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/battery_BAT0", time::Duration::from_millis(5000));
         let _id = proxy_battery.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
-            println!("interface name {:?}", h.interface_name);
-            for (s, c) in h.changed_properties.iter() {
-                println!("invalidated_property {:?}", s);
-                print_refarg(c);
+            let perc: Option<&f64> = arg::prop_cast(&h.changed_properties, "Percentage");
+            if let Some(perc) = perc {
+                println!("battery percentage: {:.1}", perc);
             }
+
             true
         });
         loop { 
