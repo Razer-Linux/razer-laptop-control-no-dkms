@@ -11,9 +11,10 @@ use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
 use std::{thread, time};
-use dbus::blocking::Connection;
+use dbus::{blocking::Connection, arg};
 use dbus::Message;
 mod dbus_gnome_screensaver;
+mod battery;
 // use dbus;
 
 lazy_static! {
@@ -30,6 +31,14 @@ lazy_static! {
             Err(_) => Mutex::new(device::DeviceManager::new()),
         }
     };
+}
+
+fn print_refarg(value: &dyn arg::RefArg) {
+    // We don't know what type the value is. We'll try a few and fall back to
+    // debug printing if the value is more complex than that.
+    if let Some(s) = value.as_str() { println!("as string {}", s); }
+    else if let Some(i) = value.as_i64() { println!("as int {}", i); }
+    else { println!("unknown {:?}", value); }
 }
 
 // Main function for daemon
@@ -102,7 +111,7 @@ fn main() {
 
     thread::spawn(move || {
         let dbus_session = Connection::new_session()
-            .expect("failed to connect to D-Bus system bus");
+            .expect("failed to connect to D-Bus session bus");
         let  proxy = dbus_session.with_proxy("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver", time::Duration::from_millis(5000));
         let _id = proxy.match_signal(|h: dbus_gnome_screensaver::OrgGnomeScreenSaverActiveChanged, _: &Connection, _: &Message| {
             if h.new_value {
@@ -119,8 +128,29 @@ fn main() {
             }
             true
         });
-        loop { dbus_session.process(time::Duration::from_millis(1000)).unwrap(); }
+
+        loop { 
+            dbus_session.process(time::Duration::from_millis(1000)).unwrap(); 
+        }
     });
+
+    thread::spawn(move || {
+        let dbus_system = Connection::new_system()
+            .expect("failed to connect to D-Bus system bus");
+        let proxy_system = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/line_power_AC0", time::Duration::from_millis(5000));
+        let _id = proxy_system.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
+            println!("interface name {:?}", h.interface_name);
+            for (s, c) in h.changed_properties.iter() {
+                println!("invalidated_property {:?}", s);
+                print_refarg(c);
+            }
+            true
+        });
+        loop { 
+            dbus_system.process(time::Duration::from_millis(1000)).unwrap();
+        }
+    });
+
 
     if let Some(listener) = comms::create() {
         for stream in listener.incoming() {
