@@ -525,7 +525,7 @@ impl RazerLaptop {
         return 0;
     }
 
-    pub fn set_cpu_boost(&mut self, mut boost: u8) -> bool {
+    fn set_cpu_boost(&mut self, mut boost: u8) -> bool {
         let mut report: RazerPacket = RazerPacket::new(0x0d, 0x07, 0x03);
         if boost == 3 && self.have_feature("boost".to_string()) == false {
             boost = 2;
@@ -540,7 +540,7 @@ impl RazerLaptop {
         return false;
     }
 
-    pub fn get_gpu_boost(&mut self) -> u8 {
+    fn get_gpu_boost(&mut self) -> u8 {
         let mut report: RazerPacket = RazerPacket::new(0x0d, 0x87, 0x03);
         report.args[0] = 0x00;
         report.args[1] = 0x02;
@@ -551,7 +551,7 @@ impl RazerLaptop {
         return 0;
     }
 
-    pub fn set_gpu_boost(&mut self, boost: u8) -> bool {
+    fn set_gpu_boost(&mut self, boost: u8) -> bool {
         let mut report: RazerPacket = RazerPacket::new(0x0d, 0x07, 0x03);
         report.args[0] = 0x00;
         report.args[1] = 0x02;

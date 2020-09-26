@@ -13,8 +13,8 @@ use dbus::{blocking::Connection, arg};
 use dbus::Message;
 use std::sync::Mutex;
 use std::{thread, time};
-mod dbus_gnome_screensaver;
 mod battery;
+mod session_manager_presence;
 // use dbus;
 
 lazy_static! {
@@ -85,14 +85,13 @@ fn main() {
     thread::spawn(move || {
         let dbus_session = Connection::new_session()
             .expect("failed to connect to D-Bus session bus");
-        let  proxy = dbus_session.with_proxy("org.gnome.ScreenSaver", "/org/gnome/ScreenSaver", time::Duration::from_millis(5000));
-        let _id = proxy.match_signal(|h: dbus_gnome_screensaver::OrgGnomeScreenSaverActiveChanged, _: &Connection, _: &Message| {
-            if h.new_value {
+        let  proxy = dbus_session.with_proxy("org.gnome.SessionManager", "/org/gnome/SessionManager/Presence", time::Duration::from_millis(5000));
+        let _id = proxy.match_signal(|h: session_manager_presence::OrgGnomeSessionManagerPresenceStatusChanged, _: &Connection, _: &Message| {
+            if h.status == 3 {
                 if let Ok(mut d) = DEV_MANAGER.lock() {
                     d.light_off();
                 }
-            } 
-            else {
+            } else if h.status == 0 {
                 if let Ok(mut d) = DEV_MANAGER.lock() {
                     d.restore_light();
                 }
