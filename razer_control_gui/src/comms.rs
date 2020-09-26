@@ -8,19 +8,18 @@ pub const SOCKET_PATH: &'static str = "/tmp/razercontrol-socket";
 #[derive(Serialize, Deserialize, Debug)]
 /// Represents data sent TO the daemon
 pub enum DaemonCommand {
-    SetFanSpeed { rpm: i32 },      // Fan speed
+    SetFanSpeed { ac: usize, rpm: i32 },      // Fan speed
     GetFanSpeed(),                 // Get (Fan speed)
-    SetPowerMode { pwr: u8, cpu: u8, gpu: u8}, // Power mode
+    SetPowerMode { ac: usize, pwr: u8, cpu: u8, gpu: u8}, // Power mode
     GetPwrLevel(),                 // Get (Power mode)
     GetCPUBoost(),                 // Get (CPU boost)
     GetGPUBoost(),                 // Get (GPU boost)
-    SetLogoLedState{ logo_state: u8 },
+    SetLogoLedState{ ac:usize, logo_state: u8 },
     GetLogoLedState(),
     GetKeyboardRGB { layer: i32 }, // Layer ID
-    GetCfg(),                      // Request curr settings for fan + power
     SetEffect { name: String, params: Vec<u8> }, // Set keyboard colour
     SetStandardEffect { name: String, params: Vec<u8> }, // Set keyboard colour
-    SetBrightness { val: u8 },
+    SetBrightness { ac:usize, val: u8 },
     GetBrightness (),
 }
 
@@ -37,7 +36,6 @@ pub enum DaemonResponse {
     SetLogoLedState {result: bool },
     GetLogoLedState { logo_state: u8 },
     GetKeyboardRGB { layer: i32, rgbdata: Vec<u8> }, // Response (RGB) of 90 keys
-    GetCfg { fan_rpm: i32, pwr: u8 },                // Fan speed, power mode
     SetEffect { result: bool },                       // Set keyboard colour
     SetStandardEffect { result: bool },                       // Set keyboard colour
     SetBrightness { result: bool },

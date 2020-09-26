@@ -71,22 +71,35 @@ fn main() {
                 return;
             }
             if args[2].to_ascii_lowercase().as_str() == "power" {
-                args.drain(0..3);
-                write_pwr_mode(args);
+                let ac: usize;
+                match args[3].to_ascii_lowercase().as_str() {
+                    "ac" => ac = 0x01,
+                    "bat" => ac = 0x00,
+                    _ => print_help("Unknown power mode"),
+                }
+
+                args.drain(0..4);
+                write_pwr_mode(ac, args);
                 return;
             }
-            if args.len() != 4 {
+            if args.len() != 5 {
                 print_help("Invalid number of args supplied");
             }
-            if let Ok(processed) = args[3].parse::<i32>() {
+            if let Ok(processed) = args[4].parse::<i32>() {
+                let ac: usize;
+                match args[3].to_ascii_lowercase().as_str() {
+                    "ac" => ac = 0x01,
+                    "bat" => ac = 0x00,
+                    _ => print_help("Unknown power mode"),
+                }
                 match args[2].to_ascii_lowercase().as_str() {
-                    "fan" => write_fan_speed(processed),
-                    "logo" => write_logo_mode(processed as u8),
-                    "brightness" => write_brightness(processed as u8),
+                    "fan" => write_fan_speed(ac, processed),
+                    "logo" => write_logo_mode(ac, processed as u8),
+                    "brightness" => write_brightness(ac, processed as u8),
                     _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
                 }
             } else {
-                print_help(format!("`{}` is not a valid number", args[3]).as_str())
+                print_help(format!("`{}` is not a valid number", args[4]).as_str())
             }
         },
         _ => print_help(format!("Unrecognised argument: `{}`", args[1]).as_str())
@@ -286,10 +299,14 @@ fn read_power_mode() {
     }
 }
 
-fn write_pwr_mode(opt: Vec<String>) {
+fn write_pwr_mode(ac:usize, opt: Vec<String>) {
     println!("Write effect: Args: {:?}", opt);
-    if let Ok(x) = opt[0].parse::<i8>() {
+    if let Ok(mut x) = opt[0].parse::<i8>() {
         if (x >= 0 && x <= 2) || (x == 4) {
+            if ac == 0 && x != 0 {
+                eprintln!("Only balanced mode can be set on battery power!!!");
+                x = 0;
+            }
             if x == 4
             {
                 if opt.len() != 3 {
@@ -300,7 +317,7 @@ fn write_pwr_mode(opt: Vec<String>) {
                         if cpu_boost >= 0 && cpu_boost <= 3 {
                             if let Ok(gpu_boost) = opt[2].parse::<i8>() {
                                 if gpu_boost >= 0 && gpu_boost <= 2 {
-                                    if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { pwr: x as u8, cpu: cpu_boost as u8, gpu: gpu_boost as u8}) {
+                                    if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { ac, pwr: x as u8, cpu: cpu_boost as u8, gpu: gpu_boost as u8}) {
                                         read_power_mode()
                                     } else {
                                         eprintln!("Unknown error!");
@@ -321,7 +338,7 @@ fn write_pwr_mode(opt: Vec<String>) {
             }
             else
             {
-                if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { pwr: x as u8, cpu: 0, gpu: 0}) {
+                if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { ac, pwr: x as u8, cpu: 0, gpu: 0}) {
                     read_power_mode()
                 } else {
                     eprintln!("Unknown error!");
@@ -348,25 +365,25 @@ fn read_brigtness () {
     }
 }
 
-fn write_brightness(val: u8)
+fn write_brightness(ac:usize, val: u8)
 {
-    if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { val } ) {
+    if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { ac, val } ) {
         read_brigtness()
     } else {
         eprintln!("Unknown error!");
     }
 }
 
-fn write_fan_speed(x: i32) {
-    if let Some(_) = send_data(comms::DaemonCommand::SetFanSpeed { rpm: x }) {
+fn write_fan_speed(ac: usize, x: i32) {
+    if let Some(_) = send_data(comms::DaemonCommand::SetFanSpeed { ac, rpm: x }) {
         read_fan_rpm()
     } else {
         eprintln!("Unknown error!");
     }
 }
 
-fn write_logo_mode(x: u8) {
-    if let Some(_) = send_data(comms::DaemonCommand::SetLogoLedState { logo_state: x }) {
+fn write_logo_mode(ac: usize, x: u8) {
+    if let Some(_) = send_data(comms::DaemonCommand::SetLogoLedState { ac, logo_state: x }) {
         read_logo_mode()
     } else {
         eprintln!("Unknown error!");

@@ -5,25 +5,46 @@ use std::io::prelude::*;
 const SETTINGS_FILE: &str = "/.local/share/razercontrol/daemon.json";
 const EFFECTS_FILE: &str = "/.local/share/razercontrol/effects.json";
 
-#[derive(Serialize, Deserialize)]
-pub struct Configuration {
+#[derive(Serialize, Deserialize, Copy, Clone)]
+pub struct PowerConfig {
     pub power_mode: u8,
     pub cpu_boost: u8,
     pub gpu_boost: u8,
     pub fan_rpm: i32,
     pub brightness: u8,
     pub logo_state: u8,
+    pub standard_effect: u8,
+}
+
+impl PowerConfig {
+    pub fn new() -> PowerConfig {
+        return PowerConfig{
+            power_mode: 0,
+            cpu_boost: 1,
+            gpu_boost: 0,
+            fan_rpm: 0,
+            brightness: 128,
+            logo_state: 0,
+            standard_effect: 0, // off
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Configuration {
+    pub power: [PowerConfig; 2],
+    pub sync: bool, // sync light settings between ac and battery
+    pub no_light: u8, // no light bellow this percentage of battery
+    pub screensaver: bool, // turno of keyboard light if screen is blank
 }
 
 impl Configuration {
     pub fn new() -> Configuration {
         return Configuration {
-            power_mode: 0,
-            cpu_boost: 0,
-            gpu_boost: 0,
-            fan_rpm: 0,
-            brightness: 128,
-            logo_state: 0,
+            power: [PowerConfig::new(), PowerConfig::new()],
+            sync: false,
+            no_light: 0,
+            screensaver: false,
         };
     }
 

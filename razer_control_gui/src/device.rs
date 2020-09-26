@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 use serde_big_array::big_array;
 use std::{thread, time, io, fs, env};
 use hidapi::HidApi;
+// use crate::config::PowerConfig;
+use crate::config;
+
+const RAZER_VENDOR_ID: u16 = 0x1532;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SupportedDevice {
@@ -75,6 +79,7 @@ const DEVICE_FILE: &str = "/.local/share/razercontrol/data/devices/laptops.json"
 pub struct DeviceManager {
     pub device: Option <RazerLaptop>,
     supported_devices: Vec<SupportedDevice>,
+    pub config: Option <config::Configuration>,
 }
 
 impl DeviceManager {
@@ -82,6 +87,7 @@ impl DeviceManager {
         return DeviceManager {
             device: None,
             supported_devices: vec![],
+            config: None,
         };
     }
 
@@ -89,12 +95,207 @@ impl DeviceManager {
         let str: Vec<u8> = fs::read(env::var("HOME").unwrap() + DEVICE_FILE)?;
         let mut res: DeviceManager = DeviceManager::new();
         res.supported_devices = serde_json::from_slice(str.as_slice())?;
-        println!("suported devices len: {:?}", res.supported_devices.len());
+        println!("suported devices found: {:?}", res.supported_devices.len());
+        match config::Configuration::read_from_config() {
+            Ok(c) => res.config = Some(c),
+            Err(_) => res.config = Some(config::Configuration::new()),
+        }
+
         Ok(res)
+    }
+
+    fn get_ac_config(&mut self, ac: usize) -> Option<config::PowerConfig> {
+        if let Some(c) = self.get_config() {
+            return Some(c.power[ac as usize]);
+        }
+
+        return None;
+    }
+
+    pub fn light_off(&mut self) {
+        if let Some(laptop) = self.get_device() {
+            laptop.set_screensaver(true);
+            laptop.set_brightness(0);
+            laptop.set_logo_led_state(0);
+        }
+    }
+
+    pub fn restore_light(&mut self) {
+        let mut brightness = 0;
+        let mut logo_state = 0;
+        let mut ac:usize = 0;
+        if let Some(laptop) = self.get_device() {
+            ac = laptop.get_ac_state();
+        }
+        if let Some(config) = self.get_ac_config(ac) {
+            brightness = config.brightness;
+            logo_state = config.logo_state;
+        }
+        if let Some(laptop) = self.get_device() {
+            laptop.set_screensaver(false);
+            laptop.set_brightness(brightness);
+            laptop.set_logo_led_state(logo_state);
+        }
+    }
+
+    pub fn set_power_mode(&mut self, ac: usize, pwr: u8, cpu: u8, gpu: u8) -> bool {
+        let mut res: bool = false;
+        if let Some(mut config) = self.get_config() {
+            config.power[ac].power_mode = pwr;
+            config.power[ac].cpu_boost = cpu;
+            config.power[ac].gpu_boost = gpu;
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+        if let Some(laptop) = self.get_device() {
+            let state = laptop.get_ac_state();
+            if state != ac {
+                res = true;
+            } else {
+                res = laptop.set_power_mode(pwr, cpu, gpu);
+            }
+        }
+
+        return res;
+    }
+
+    pub fn set_fan_rpm(&mut self, ac:usize, rpm: i32) -> bool {
+        let mut res: bool = false;
+        if let Some(mut config) = self.get_config() {
+            config.power[ac].fan_rpm = rpm;
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+             
+        if let Some(laptop) = self.get_device() {
+            let state = laptop.get_ac_state();
+            if state != ac {
+                res = true;
+            } else {
+                res = laptop.set_fan_rpm(rpm as u16);
+            }
+        }
+
+        return res;
+    }
+
+    pub fn set_logo_led_state(&mut self, ac:usize, logo_state: u8) -> bool {
+        let mut res: bool = false;
+        if let Some(mut config) = self.get_config() {
+            config.power[ac].logo_state = logo_state;
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+             
+        if let Some(laptop) = self.get_device() {
+            let state = laptop.get_ac_state();
+           
+            if state != ac {
+                res = true;
+            } else {
+                res = laptop.set_logo_led_state(logo_state);
+            }
+        }
+
+        return res;
+    }
+
+    pub fn set_brightness(&mut self, ac:usize, brightness: u8) -> bool {
+        let mut res: bool = false;
+        let _val = brightness as u16  * 255 / 100;
+        if let Some(mut config) = self.get_config() {
+            config.power[ac].brightness = _val as u8;
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+ 
+        if let Some(laptop) = self.get_device() {
+            let state = laptop.get_ac_state();
+            if state != ac {
+                res = true;
+            } else {
+                res = laptop.set_brightness(_val as u8);
+            }
+        }
+
+        return res;
+    }
+
+    pub fn get_brightness(&mut self) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            let val = laptop.get_brightness() as u32;
+            let mut perc = val * 100 * 100/ 255;
+            perc += 50;
+            perc /= 100;
+
+            return perc as u8;
+        }
+
+        return 0
+    }
+
+    pub fn get_logo_led_state(&mut self) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            return laptop.get_logo_led_state();
+        }
+
+        return 0;
+    }
+
+    pub fn get_fan_rpm(&mut self) -> i32 {
+        if let Some(laptop) = self.get_device() {
+            return laptop.get_fan_rpm() as i32;
+        }
+
+        return 0;
+    }
+
+    pub fn get_power_mode(&mut self) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            return laptop.get_power_mode(0x01);
+        }
+
+        return 0;
+    }
+
+    pub fn get_cpu_boost(&mut self) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            return laptop.get_cpu_boost();
+        }
+
+        return 0;
+    }
+
+    pub fn get_gpu_boost(&mut self) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            return laptop.get_gpu_boost();
+        }
+
+        return 0;
+    }
+
+    pub fn set_ac_state(&mut self, ac: bool) {
+        if let Some(laptop) = self.get_device() {
+            laptop.set_ac_state(ac);
+        }
+        let config: Option<config::PowerConfig> = self.get_ac_config(ac as usize);
+        if let Some(config) = config {
+            if let Some(laptop) = self.get_device() {
+                laptop.set_config(config);
+            }
+        }
     }
 
     pub fn get_device(&mut self) -> Option<&mut RazerLaptop> {
         return self.device.as_mut();
+    }
+
+    fn get_config(&mut  self) -> Option<&mut config::Configuration> {
+        return self.config.as_mut();
     }
 
     // pub fn set_device(&mut self, device: RazerLaptop) {
@@ -106,7 +307,7 @@ impl DeviceManager {
         match HidApi::new() {
             Ok(api) => {
                 for device in api.device_list() {
-                    if device.vendor_id() == 0x1532 {
+                    if device.vendor_id() == RAZER_VENDOR_ID {
                         if device.interface_number() != 0 {
                         } else {
                             for sdevice in self.supported_devices.iter_mut() {
@@ -144,6 +345,8 @@ pub struct RazerLaptop {
     device: hidapi::HidDevice,
     power: u8, // need for fan
     fan_rpm: u8, // need for power
+    ac_state: u8, // index config array
+    screensaver: bool,
 }
 //
 impl RazerLaptop {
@@ -173,7 +376,43 @@ impl RazerLaptop {
             device,
             power: 0,
             fan_rpm: 0,
+            ac_state: 0,
+            screensaver: false
         };
+    }
+
+    pub fn set_screensaver(&mut self, active: bool) {
+        self.screensaver = active;
+    }
+
+    pub fn set_config(&mut self, config: config::PowerConfig) -> bool {
+        let mut ret: bool = false;
+
+        if self.screensaver == false {
+            ret |= self.set_brightness(config.brightness);
+            ret |= self.set_logo_led_state(config.logo_state);
+        } else {
+            ret |= self.set_brightness(0);
+            ret |= self.set_logo_led_state(0);
+        }
+        ret |= self.set_power_mode(config.power_mode, config.cpu_boost, config.gpu_boost);
+        ret |= self.set_fan_rpm(config.fan_rpm as u16);
+
+        return ret;
+    }
+
+    pub fn set_ac_state(&mut self, online: bool) -> usize {
+        if online {
+            self.ac_state = 1;
+        } else {
+            self.ac_state = 0;
+        }
+
+        return  self.ac_state as usize;
+    }
+
+    pub fn get_ac_state(&mut self) -> usize {
+        return self.ac_state as usize;
     }
 
     pub fn get_name(&mut self) -> String {
