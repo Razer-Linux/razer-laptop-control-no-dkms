@@ -14,9 +14,7 @@ use dbus::Message;
 use std::sync::Mutex;
 use std::{thread, time};
 mod battery;
-mod session_manager_presence;
 mod dbus_mutter_displayconfig;
-// use dbus;
 
 lazy_static! {
     static ref EFFECT_MANAGER: Mutex<kbd::EffectManager> = Mutex::new(kbd::EffectManager::new());
