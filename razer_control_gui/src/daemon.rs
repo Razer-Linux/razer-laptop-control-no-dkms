@@ -47,15 +47,6 @@ fn main() {
         std::process::exit(1);
     }
 
-    // Start the keyboard animator thread,
-    thread::spawn(move || {
-        loop {
-            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
-                EFFECT_MANAGER.lock().unwrap().update(laptop);
-            }
-            std::thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
-        }
-    });
 
     if let Ok(mut d) = DEV_MANAGER.lock() {
         let dbus_system = Connection::new_system()
@@ -80,6 +71,16 @@ fn main() {
             std::process::exit(1);
         }
     }
+
+    // Start the keyboard animator thread,
+    thread::spawn(move || {
+        loop {
+            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
+                EFFECT_MANAGER.lock().unwrap().update(laptop);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
+        }
+    });
 
     thread::spawn(move || {
         let dbus_session = Connection::new_session()
@@ -246,6 +247,7 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                 let mut res = false;
                 if let Some(laptop) = d.get_device() {
                     if let Ok(mut k) = EFFECT_MANAGER.lock() {
+                        k.pop_effect(laptop); // Remove old layer
                         let _res = match name.as_str() {
                             "off" => laptop.set_standard_effect(device::RazerLaptop::OFF, params),
                             "wave" => laptop.set_standard_effect(device::RazerLaptop::WAVE, params),
@@ -257,7 +259,6 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                             _ => false,
                         };
                         res = _res;
-                        k.pop_effect(laptop); // Remove old layer
                     }
                 } else {
                     res = false;
