@@ -1,4 +1,5 @@
 target/**
 install/**
 pkg/**
+.ccls-cache
 Cargo.lock
