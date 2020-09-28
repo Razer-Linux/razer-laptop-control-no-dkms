@@ -15,6 +15,7 @@ use std::sync::Mutex;
 use std::{thread, time};
 mod battery;
 mod dbus_mutter_displayconfig;
+mod dbus_mutter_idlemonitor;
 
 lazy_static! {
     static ref EFFECT_MANAGER: Mutex<kbd::EffectManager> = Mutex::new(kbd::EffectManager::new());
@@ -103,8 +104,33 @@ fn main() {
             } 
             true
         });
+        let  proxy_idle = dbus_session.with_proxy("org.gnome.Mutter.IdleMonitor", "/org/gnome/Mutter/IdleMonitor/Core", time::Duration::from_millis(5000));
+        let _id = proxy_idle.match_signal(|h: dbus_mutter_idlemonitor::OrgGnomeMutterIdleMonitorWatchFired, _: &Connection, _: &Message| {
+            if let Ok(mut d) = DEV_MANAGER.lock() {
+                if d.idle_id == h.id {
+                    println!("idle trigger {:?}", h.id);
+                    d.light_off();
+                } else if d.active_id == h.id {
+                    println!("active trigger {:?}", h.id);
+                    d.restore_light();
+                }
+            }
+            true
+        });
 
-        loop { dbus_session.process(time::Duration::from_millis(1000)).unwrap(); }
+        loop { 
+            if let Ok(res) = dbus_session.process(time::Duration::from_millis(1000)) {
+                if res == true {
+                    if let Ok(mut d) = DEV_MANAGER.lock() {
+                        d.add_active_watch(&proxy_idle);
+                    }
+                }
+                if let Ok(mut d) = DEV_MANAGER.lock() {
+                    d.add_idle_watch(&proxy_idle);
+                }
+            }
+        }
+
     });
 
     thread::spawn(move || {
@@ -197,6 +223,9 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
             },
             comms::DaemonCommand::SetBrightness { ac, val } => {
                 Some(comms::DaemonResponse::SetBrightness {result: d.set_brightness(ac, val) })
+            }
+            comms::DaemonCommand::SetIdle { ac, val } => {
+                Some(comms::DaemonResponse::SetIdle { result: d.change_idle(ac, val) })
             }
             comms::DaemonCommand::GetBrightness() =>  {
                 Some(comms::DaemonResponse::GetBrightness { result: d.get_brightness()})

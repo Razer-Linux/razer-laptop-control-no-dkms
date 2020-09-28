@@ -13,7 +13,8 @@ pub struct PowerConfig {
     pub fan_rpm: i32,
     pub brightness: u8,
     pub logo_state: u8,
-    pub standard_effect: u8,
+    pub screensaver: bool, // turno of keyboard light if screen is blank
+    pub idle: u32,
 }
 
 impl PowerConfig {
@@ -25,7 +26,8 @@ impl PowerConfig {
             fan_rpm: 0,
             brightness: 128,
             logo_state: 0,
-            standard_effect: 0, // off
+            screensaver: false,
+            idle: 0,
         }
     }
 }
@@ -34,8 +36,8 @@ impl PowerConfig {
 pub struct Configuration {
     pub power: [PowerConfig; 2],
     pub sync: bool, // sync light settings between ac and battery
-    pub no_light: u8, // no light bellow this percentage of battery
-    pub screensaver: bool, // turno of keyboard light if screen is blank
+    pub no_light: f64, // no light bellow this percentage of battery
+    pub standard_effect: u8,
 }
 
 impl Configuration {
@@ -43,8 +45,8 @@ impl Configuration {
         return Configuration {
             power: [PowerConfig::new(), PowerConfig::new()],
             sync: false,
-            no_light: 0,
-            screensaver: false,
+            no_light: 0.0,
+            standard_effect: 0, // off
         };
     }
 

@@ -96,6 +96,7 @@ fn main() {
                     "fan" => write_fan_speed(ac, processed),
                     "logo" => write_logo_mode(ac, processed as u8),
                     "brightness" => write_brightness(ac, processed as u8),
+                    "idle" => write_idle(ac, processed as u32),
                     _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
                 }
             } else {
@@ -300,7 +301,7 @@ fn read_power_mode() {
 }
 
 fn write_pwr_mode(ac:usize, opt: Vec<String>) {
-    println!("Write effect: Args: {:?}", opt);
+    println!("Write power: Args: {:?}", opt);
     if let Ok(mut x) = opt[0].parse::<i8>() {
         if (x >= 0 && x <= 2) || (x == 4) {
             if ac == 0 && x != 0 {
@@ -369,6 +370,14 @@ fn write_brightness(ac:usize, val: u8)
 {
     if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { ac, val } ) {
         read_brigtness()
+    } else {
+        eprintln!("Unknown error!");
+    }
+}
+
+fn write_idle(ac: usize, val: u32)
+{
+    if let Some(_) = send_data(comms::DaemonCommand::SetIdle { ac, val } ) {
     } else {
         eprintln!("Unknown error!");
     }

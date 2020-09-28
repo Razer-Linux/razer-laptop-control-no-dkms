@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_big_array::big_array;
 use std::{thread, time, io, fs, env};
 use hidapi::HidApi;
-// use crate::config::PowerConfig;
+use crate::dbus_mutter_idlemonitor;
 use crate::config;
 
 const RAZER_VENDOR_ID: u16 = 0x1532;
@@ -80,6 +80,10 @@ pub struct DeviceManager {
     pub device: Option <RazerLaptop>,
     supported_devices: Vec<SupportedDevice>,
     pub config: Option <config::Configuration>,
+    pub idle_id: u32,
+    pub active_id: u32,
+    add_active: bool,
+    pub change_idle: bool,
 }
 
 impl DeviceManager {
@@ -88,7 +92,53 @@ impl DeviceManager {
             device: None,
             supported_devices: vec![],
             config: None,
+            idle_id: 0,
+            active_id: 0,
+            add_active: false,
+            change_idle: false,
         };
+    }
+
+    pub fn add_idle_watch(&mut self, proxy_idle: &dyn dbus_mutter_idlemonitor::OrgGnomeMutterIdleMonitor) {
+        if self.change_idle {
+            let mut timeout: u64 = 0;
+            let mut state: usize = 0;
+            if let Some(laptop) = self.get_device() {
+                state = laptop.get_ac_state();
+            }
+            if let Some(config) = self.get_config() {
+                timeout = config.power[state].idle as u64 * 60 * 1000; // idle is in minutes timeout is in miliseconds
+            }
+            if timeout != 0 {
+                if self.idle_id != 0 {
+                    self.remove_watch(proxy_idle);
+                }
+                if let Ok(id) = proxy_idle.add_idle_watch(timeout) {
+                    println!("idle handler {:?}", id);
+                    self.idle_id = id;
+                }
+            } else {
+                if self.idle_id != 0 {
+                    self.remove_watch(proxy_idle);
+                }
+            }
+            self.change_idle = false;
+        }
+    }
+
+    fn remove_watch(&mut self, proxy_idle: &dyn dbus_mutter_idlemonitor::OrgGnomeMutterIdleMonitor) {
+        if let Ok(_) = proxy_idle.remove_watch(self.idle_id) {
+            println!("remove idle handler");
+        }
+    }
+
+    pub fn add_active_watch(&mut self, proxy_idle: &dyn dbus_mutter_idlemonitor::OrgGnomeMutterIdleMonitor) {
+        if self.add_active {
+            if let Ok(id) = proxy_idle.add_user_active_watch() {
+                println!("active handler {:?}", id);
+                self.active_id = id;
+            }
+        }
     }
 
     pub fn read_laptops_file() -> io::Result<DeviceManager > {
@@ -113,6 +163,9 @@ impl DeviceManager {
     }
 
     pub fn light_off(&mut self) {
+        if self.idle_id != 0 {
+            self.add_active = true;
+        }
         if let Some(laptop) = self.get_device() {
             laptop.set_screensaver(true);
             laptop.set_brightness(0);
@@ -121,6 +174,7 @@ impl DeviceManager {
     }
 
     pub fn restore_light(&mut self) {
+        self.add_active = false;
         let mut brightness = 0;
         let mut logo_state = 0;
         let mut ac:usize = 0;
@@ -136,6 +190,22 @@ impl DeviceManager {
             laptop.set_brightness(brightness);
             laptop.set_logo_led_state(logo_state);
         }
+    }
+
+    pub fn change_idle(&mut self, ac: usize, timeout: u32) -> bool {
+        // let mut arm: bool = false;
+        if let Some(config) = self.get_config() {
+            if config.power[ac].idle != timeout {
+                config.power[ac].idle = timeout;
+                if let Err(e) = config.write_to_file() {
+                    eprintln!("Error write config {:?}", e);
+                }
+                // arm = true;
+                self.change_idle = true;
+            }
+        }
+
+        return true;
     }
 
     pub fn set_power_mode(&mut self, ac: usize, pwr: u8, cpu: u8, gpu: u8) -> bool {
@@ -282,6 +352,7 @@ impl DeviceManager {
         if let Some(laptop) = self.get_device() {
             laptop.set_ac_state(ac);
         }
+        self.change_idle = true;
         let config: Option<config::PowerConfig> = self.get_ac_config(ac as usize);
         if let Some(config) = config {
             if let Some(laptop) = self.get_device() {

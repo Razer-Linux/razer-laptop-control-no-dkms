@@ -20,6 +20,7 @@ pub enum DaemonCommand {
     SetEffect { name: String, params: Vec<u8> }, // Set keyboard colour
     SetStandardEffect { name: String, params: Vec<u8> }, // Set keyboard colour
     SetBrightness { ac:usize, val: u8 },
+    SetIdle {ac: usize, val: u32 },
     GetBrightness (),
 }
 
@@ -39,6 +40,7 @@ pub enum DaemonResponse {
     SetEffect { result: bool },                       // Set keyboard colour
     SetStandardEffect { result: bool },                       // Set keyboard colour
     SetBrightness { result: bool },
+    SetIdle { result: bool },
     GetBrightness { result: u8 },
 }
 
