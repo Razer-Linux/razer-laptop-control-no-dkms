@@ -8,8 +8,9 @@ fn print_help(reason: &str) -> ! {
         ret_code = 1;
     }
     println!("Help:");
-    println!("./razer-cli read <attr>");
-    println!("./razer-cli write <attr>");
+    println!("./razer-cli read <attr> <ac_state>");
+    println!("./razer-cli write <attr> <ac_stete>");
+    println!("./razer-cli write standard_effect <effect name> <params>");
     println!("./razer-cli write effect <effect name> <params>");
     println!("");
     println!("Where 'attr':");
@@ -29,6 +30,15 @@ fn print_help(reason: &str) -> ! {
     println!("                  0 = Off");
     println!("                  1 = On");
     println!("                  2 = Breathing");
+    println!("");
+    println!("- standard_effect:");
+    println!("  -> 'off'");
+    println!("  -> 'wave' - PARAMS: <Direction>");
+    println!("  -> 'reactive' - PARAMS: <Speed> <Red> <Green> <Blue>");
+    println!("  -> 'breathing' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]");
+    println!("  -> 'spectrum'");
+    println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
+    println!("  -> 'starlight' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]");
     println!("");
     println!("- effect:");
     println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
