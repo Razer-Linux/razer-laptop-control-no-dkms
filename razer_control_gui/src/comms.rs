@@ -9,19 +9,19 @@ pub const SOCKET_PATH: &'static str = "/tmp/razercontrol-socket";
 /// Represents data sent TO the daemon
 pub enum DaemonCommand {
     SetFanSpeed { ac: usize, rpm: i32 },      // Fan speed
-    GetFanSpeed(),                 // Get (Fan speed)
+    GetFanSpeed { ac: usize },                 // Get (Fan speed)
     SetPowerMode { ac: usize, pwr: u8, cpu: u8, gpu: u8}, // Power mode
-    GetPwrLevel(),                 // Get (Power mode)
-    GetCPUBoost(),                 // Get (CPU boost)
-    GetGPUBoost(),                 // Get (GPU boost)
+    GetPwrLevel { ac: usize },                 // Get (Power mode)
+    GetCPUBoost { ac: usize },                 // Get (CPU boost)
+    GetGPUBoost { ac: usize },                 // Get (GPU boost)
     SetLogoLedState{ ac:usize, logo_state: u8 },
-    GetLogoLedState(),
+    GetLogoLedState { ac: usize },
     GetKeyboardRGB { layer: i32 }, // Layer ID
     SetEffect { name: String, params: Vec<u8> }, // Set keyboard colour
     SetStandardEffect { name: String, params: Vec<u8> }, // Set keyboard colour
     SetBrightness { ac:usize, val: u8 },
     SetIdle {ac: usize, val: u32 },
-    GetBrightness (),
+    GetBrightness { ac: usize },
 }
 
 #[derive(Serialize, Deserialize, Debug)]

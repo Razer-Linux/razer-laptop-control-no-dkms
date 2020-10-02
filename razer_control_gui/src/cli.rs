@@ -49,11 +49,20 @@ fn main() {
     }
     match args[1].to_ascii_lowercase().as_str() {
         "read" => {
+            if args.len() != 4 {
+                print_help("Invalid number of args supplied");
+            }
+            let ac: usize;
+            match args[3].to_ascii_lowercase().as_str() {
+                "ac" => ac = 0x01,
+                "bat" => ac = 0x00,
+                _ => print_help("Unknown power mode"),
+            }
             match args[2].to_ascii_lowercase().as_str() {
-                "fan" => read_fan_rpm(),
-                "power" => read_power_mode(),
-                "logo" => read_logo_mode(),
-                "brightness" => read_brigtness(),
+                "fan" => read_fan_rpm(ac),
+                "power" => read_power_mode(ac),
+                "logo" => read_logo_mode(ac),
+                "brightness" => read_brigtness(ac),
                 _ => print_help(format!("Unrecognised option to read: `{}`", args[2]).as_str())
             }
         },
@@ -227,9 +236,9 @@ fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
     }
 }
 
-fn read_fan_rpm() {
-    if let Some(resp) = send_data(comms::DaemonCommand::GetFanSpeed()) {
-        if let comms::DaemonResponse::GetFanSpeed {rpm } = resp {
+fn read_fan_rpm(ac: usize) {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetFanSpeed {ac}) {
+        if let comms::DaemonResponse::GetFanSpeed { rpm } = resp {
             let rpm_desc : String = match rpm {
                 f if f < 0 => String::from("Unknown"),
                 0 => String::from("Auto (0)"),
@@ -242,8 +251,8 @@ fn read_fan_rpm() {
     }
 }
 
-fn read_logo_mode() {
-    if let Some(resp) = send_data(comms::DaemonCommand::GetLogoLedState()) {
+fn read_logo_mode(ac:usize) {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetLogoLedState {ac}) {
         if let comms::DaemonResponse::GetLogoLedState {logo_state } = resp {
             let logo_state_desc : &str = match logo_state {
                 0 => "Off",
@@ -258,8 +267,8 @@ fn read_logo_mode() {
     }
 }
 
-fn read_power_mode() {
-    if let Some(resp) = send_data(comms::DaemonCommand::GetPwrLevel()) {
+fn read_power_mode(ac:usize) {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetPwrLevel{ac}) {
         if let comms::DaemonResponse::GetPwrLevel {pwr } = resp {
             let power_desc : &str = match pwr {
                 0 => "Balanced",
@@ -270,8 +279,8 @@ fn read_power_mode() {
             };
             println!("Current power setting: {}", power_desc);
             if pwr == 4 {
-                if let Some(resp) = send_data(comms::DaemonCommand::GetCPUBoost()) {
-                    if let comms::DaemonResponse::GetCPUBoost {cpu } = resp {
+                if let Some(resp) = send_data(comms::DaemonCommand::GetCPUBoost{ac}) {
+                    if let comms::DaemonResponse::GetCPUBoost { cpu } = resp {
                         let cpu_boost_desc : &str = match cpu {
                             0 => "Low",
                             1 => "Medium",
@@ -282,7 +291,7 @@ fn read_power_mode() {
                         println!("Current CPU setting: {}", cpu_boost_desc);
                     };
                 }
-                if let Some(resp) = send_data(comms::DaemonCommand::GetGPUBoost()) {
+                if let Some(resp) = send_data(comms::DaemonCommand::GetGPUBoost{ac}) {
                     if let comms::DaemonResponse::GetGPUBoost {gpu } = resp {
                         let gpu_boost_desc : &str = match gpu {
                             0 => "Low",
@@ -319,7 +328,7 @@ fn write_pwr_mode(ac:usize, opt: Vec<String>) {
                             if let Ok(gpu_boost) = opt[2].parse::<i8>() {
                                 if gpu_boost >= 0 && gpu_boost <= 2 {
                                     if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { ac, pwr: x as u8, cpu: cpu_boost as u8, gpu: gpu_boost as u8}) {
-                                        read_power_mode()
+                                        read_power_mode(ac)
                                     } else {
                                         eprintln!("Unknown error!");
                                     }
@@ -340,7 +349,7 @@ fn write_pwr_mode(ac:usize, opt: Vec<String>) {
             else
             {
                 if let Some(_) = send_data(comms::DaemonCommand::SetPowerMode { ac, pwr: x as u8, cpu: 0, gpu: 0}) {
-                    read_power_mode()
+                    read_power_mode(ac)
                 } else {
                     eprintln!("Unknown error!");
                 }
@@ -356,8 +365,8 @@ fn write_pwr_mode(ac:usize, opt: Vec<String>) {
     
 }
 
-fn read_brigtness () {
-    if let Some(resp) = send_data(comms::DaemonCommand::GetBrightness()) {
+fn read_brigtness (ac:usize) {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetBrightness{ac}) {
         if let comms::DaemonResponse::GetBrightness { result } = resp {
             println!("Current brightness: {}", result);
         } else {
@@ -369,7 +378,7 @@ fn read_brigtness () {
 fn write_brightness(ac:usize, val: u8)
 {
     if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { ac, val } ) {
-        read_brigtness()
+        read_brigtness(ac)
     } else {
         eprintln!("Unknown error!");
     }
@@ -385,7 +394,7 @@ fn write_idle(ac: usize, val: u32)
 
 fn write_fan_speed(ac: usize, x: i32) {
     if let Some(_) = send_data(comms::DaemonCommand::SetFanSpeed { ac, rpm: x }) {
-        read_fan_rpm()
+        read_fan_rpm(ac)
     } else {
         eprintln!("Unknown error!");
     }
@@ -393,7 +402,7 @@ fn write_fan_speed(ac: usize, x: i32) {
 
 fn write_logo_mode(ac: usize, x: u8) {
     if let Some(_) = send_data(comms::DaemonCommand::SetLogoLedState { ac, logo_state: x }) {
-        read_logo_mode()
+        read_logo_mode(ac)
     } else {
         eprintln!("Unknown error!");
     }

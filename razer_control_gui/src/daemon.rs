@@ -227,10 +227,10 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
             comms::DaemonCommand::SetIdle { ac, val } => {
                 Some(comms::DaemonResponse::SetIdle { result: d.change_idle(ac, val) })
             }
-            comms::DaemonCommand::GetBrightness() =>  {
-                Some(comms::DaemonResponse::GetBrightness { result: d.get_brightness()})
+            comms::DaemonCommand::GetBrightness{ac} =>  {
+                Some(comms::DaemonResponse::GetBrightness { result: d.get_brightness(ac)})
             },
-            comms::DaemonCommand::GetLogoLedState() => Some(comms::DaemonResponse::GetLogoLedState {logo_state: d.get_logo_led_state() }),
+            comms::DaemonCommand::GetLogoLedState{ac} => Some(comms::DaemonResponse::GetLogoLedState {logo_state: d.get_logo_led_state(ac) }),
             comms::DaemonCommand::GetKeyboardRGB { layer } => {
                 let map = EFFECT_MANAGER.lock().unwrap().get_map(layer);
                 Some(comms::DaemonResponse::GetKeyboardRGB {
@@ -238,10 +238,10 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                     rgbdata: map,
                 })
             }
-            comms::DaemonCommand::GetFanSpeed() => Some(comms::DaemonResponse::GetFanSpeed { rpm: d.get_fan_rpm()}),
-            comms::DaemonCommand::GetPwrLevel() => Some(comms::DaemonResponse::GetPwrLevel { pwr: d.get_power_mode() }),
-            comms::DaemonCommand::GetCPUBoost() => Some(comms::DaemonResponse::GetCPUBoost { cpu: d.get_cpu_boost() }),
-            comms::DaemonCommand::GetGPUBoost() => Some(comms::DaemonResponse::GetGPUBoost { gpu: d.get_gpu_boost() }),
+            comms::DaemonCommand::GetFanSpeed{ac} => Some(comms::DaemonResponse::GetFanSpeed { rpm: d.get_fan_rpm(ac)}),
+            comms::DaemonCommand::GetPwrLevel{ac} => Some(comms::DaemonResponse::GetPwrLevel { pwr: d.get_power_mode(ac) }),
+            comms::DaemonCommand::GetCPUBoost{ac} => Some(comms::DaemonResponse::GetCPUBoost { cpu: d.get_cpu_boost(ac) }),
+            comms::DaemonCommand::GetGPUBoost{ac} => Some(comms::DaemonResponse::GetGPUBoost { gpu: d.get_gpu_boost(ac) }),
             comms::DaemonCommand::SetEffect{ name, params } => {
                 let mut res = false;
                 if let Ok(mut k) = EFFECT_MANAGER.lock() {

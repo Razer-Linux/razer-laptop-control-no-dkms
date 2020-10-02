@@ -295,54 +295,93 @@ impl DeviceManager {
         return res;
     }
 
-    pub fn get_brightness(&mut self) -> u8 {
+    pub fn get_brightness(&mut self, ac: usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            let val = laptop.get_brightness() as u32;
+            if laptop.ac_state as usize == ac {
+                let val = laptop.get_brightness() as u32;
+                let mut perc = val * 100 * 100/ 255;
+                perc += 50;
+                perc /= 100;
+                return perc as u8;
+            }
+        }
+
+        if let Some(config) = self.get_ac_config(ac) {
+            let val = config.brightness as u32;
             let mut perc = val * 100 * 100/ 255;
             perc += 50;
             perc /= 100;
-
             return perc as u8;
         }
 
         return 0
     }
 
-    pub fn get_logo_led_state(&mut self) -> u8 {
+    pub fn get_logo_led_state(&mut self, ac: usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            return laptop.get_logo_led_state();
+            if laptop.ac_state as usize == ac {
+                return laptop.get_logo_led_state();
+            }
+        }
+    
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.logo_state;
         }
 
         return 0;
     }
 
-    pub fn get_fan_rpm(&mut self) -> i32 {
+    pub fn get_fan_rpm(&mut self, ac: usize) -> i32 {
         if let Some(laptop) = self.get_device() {
-            return laptop.get_fan_rpm() as i32;
+            if laptop.ac_state as usize == ac {
+                return laptop.get_fan_rpm() as i32;
+            }
+        }
+
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.fan_rpm;
         }
 
         return 0;
     }
 
-    pub fn get_power_mode(&mut self) -> u8 {
+    pub fn get_power_mode(&mut self, ac:usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            return laptop.get_power_mode(0x01);
+            if laptop.ac_state as usize == ac {
+                return laptop.get_power_mode(0x01);
+            }
+        }
+
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.power_mode;
         }
 
         return 0;
     }
 
-    pub fn get_cpu_boost(&mut self) -> u8 {
+    pub fn get_cpu_boost(&mut self, ac:usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            return laptop.get_cpu_boost();
+            if laptop.ac_state as usize == ac {
+                return laptop.get_cpu_boost();
+            }
+        }
+
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.cpu_boost;
         }
 
         return 0;
     }
 
-    pub fn get_gpu_boost(&mut self) -> u8 {
+    pub fn get_gpu_boost(&mut self, ac:usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            return laptop.get_gpu_boost();
+            if laptop.ac_state as usize == ac {
+                return laptop.get_gpu_boost();
+            }
+        }
+
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.gpu_boost;
         }
 
         return 0;
