@@ -22,6 +22,8 @@ pub enum DaemonCommand {
     SetBrightness { ac:usize, val: u8 },
     SetIdle {ac: usize, val: u32 },
     GetBrightness { ac: usize },
+    SetSync { sync: bool },
+    GetSync (),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -42,6 +44,8 @@ pub enum DaemonResponse {
     SetBrightness { result: bool },
     SetIdle { result: bool },
     GetBrightness { result: u8 },
+    SetSync { result: bool },
+    GetSync { sync: bool },
 }
 
 #[allow(dead_code)]

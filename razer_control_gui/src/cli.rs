@@ -15,6 +15,7 @@ fn print_help(reason: &str) -> ! {
     println!("");
     println!("Where 'attr':");
     println!("- fan         -> Cooling fan RPM. 0 is automatic");
+    println!("");
     println!("- power       -> Power mode.");
     println!("              0 = Balanced (Normal)");
     println!("              1 = Gaming");
@@ -30,6 +31,8 @@ fn print_help(reason: &str) -> ! {
     println!("                  0 = Off");
     println!("                  1 = On");
     println!("                  2 = Breathing");
+    println!("");
+    println!("- sync        -> Sync light effects on battery and ac on/off");
     println!("");
     println!("- standard_effect:");
     println!("  -> 'off'");
@@ -99,6 +102,20 @@ fn main() {
 
                 args.drain(0..4);
                 write_pwr_mode(ac, args);
+                return;
+            }
+            if args[2].to_ascii_lowercase().as_str() == "sync" {
+                if args.len() != 4 {
+                    print_help("Invalid number of args supplied");
+                }
+                let sync: bool;
+                match args[3].to_ascii_lowercase().as_str() {
+                    "on" => sync = true,
+                    "off" => sync = false,
+                    _ => print_help("unkown parameter"),
+                }
+
+                write_sync(sync);
                 return;
             }
             if args.len() != 5 {
@@ -385,6 +402,16 @@ fn read_brigtness (ac:usize) {
     }
 }
 
+fn read_sync () {
+    if let Some(resp) = send_data(comms::DaemonCommand::GetSync()) {
+        if let comms::DaemonResponse::GetSync { sync } = resp {
+            println!("Current sync: {:?}", sync);
+        } else {
+            eprintln!("Daemon responded with invalid data!");
+        }
+    }
+}
+
 fn write_brightness(ac:usize, val: u8)
 {
     if let Some(_) = send_data(comms::DaemonCommand::SetBrightness { ac, val } ) {
@@ -413,6 +440,14 @@ fn write_fan_speed(ac: usize, x: i32) {
 fn write_logo_mode(ac: usize, x: u8) {
     if let Some(_) = send_data(comms::DaemonCommand::SetLogoLedState { ac, logo_state: x }) {
         read_logo_mode(ac)
+    } else {
+        eprintln!("Unknown error!");
+    }
+}
+
+fn write_sync(sync: bool) {
+    if let Some(_) = send_data(comms::DaemonCommand::SetSync { sync }) {
+        read_sync()
     } else {
         eprintln!("Unknown error!");
     }

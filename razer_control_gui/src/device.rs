@@ -126,6 +126,34 @@ impl DeviceManager {
         }
     }
 
+    pub fn set_sync(&mut self, sync: bool) -> bool {
+        let mut ac: usize = 0;
+        if let Some(laptop) = self.get_device() {
+            ac = laptop.ac_state as usize;
+        }
+        let other = (ac + 1) & 0x01;
+        if let Some(config) = self.get_config() {
+            config.sync = sync;
+            config.power[other].brightness = config.power[ac].brightness;
+            config.power[other].logo_state = config.power[ac].logo_state;
+            config.power[other].screensaver = config.power[ac].screensaver;
+            config.power[other].idle = config.power[ac].idle;
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+
+        return true;
+    }
+
+    pub fn get_sync(&mut self) -> bool {
+        if let Some(config) = self.get_config() {
+            return config.sync;
+        }
+
+        return false;
+    }
+
     fn remove_watch(&mut self, proxy_idle: &dyn dbus_mutter_idlemonitor::OrgGnomeMutterIdleMonitor) {
         if let Ok(_) = proxy_idle.remove_watch(self.idle_id) {
             println!("remove idle handler");
@@ -197,6 +225,10 @@ impl DeviceManager {
         if let Some(config) = self.get_config() {
             if config.power[ac].idle != timeout {
                 config.power[ac].idle = timeout;
+                if config.sync == true {
+                    let other = (ac + 1) & 0x01;
+                    config.power[other].idle = timeout;
+                }
                 if let Err(e) = config.write_to_file() {
                     eprintln!("Error write config {:?}", e);
                 }
@@ -255,6 +287,10 @@ impl DeviceManager {
         let mut res: bool = false;
         if let Some(mut config) = self.get_config() {
             config.power[ac].logo_state = logo_state;
+            if config.sync == true {
+                let other = (ac + 1) & 0x01;
+                config.power[other].logo_state = logo_state;
+            }
             if let Err(e) = config.write_to_file() {
                 eprintln!("Error write config {:?}", e);
             }
@@ -273,11 +309,29 @@ impl DeviceManager {
         return res;
     }
 
+    pub fn get_logo_led_state(&mut self, ac: usize) -> u8 {
+        if let Some(laptop) = self.get_device() {
+            if laptop.ac_state as usize == ac {
+                return laptop.get_logo_led_state();
+            }
+        }
+    
+        if let Some(config) = self.get_ac_config(ac) {
+            return config.logo_state;
+        }
+
+        return 0;
+    }
+
     pub fn set_brightness(&mut self, ac:usize, brightness: u8) -> bool {
         let mut res: bool = false;
         let _val = brightness as u16  * 255 / 100;
         if let Some(mut config) = self.get_config() {
             config.power[ac].brightness = _val as u8;
+            if config.sync == true {
+                let other = (ac + 1) & 0x01;
+                config.power[other].brightness = _val as u8;
+            }
             if let Err(e) = config.write_to_file() {
                 eprintln!("Error write config {:?}", e);
             }
@@ -315,20 +369,6 @@ impl DeviceManager {
         }
 
         return 0
-    }
-
-    pub fn get_logo_led_state(&mut self, ac: usize) -> u8 {
-        if let Some(laptop) = self.get_device() {
-            if laptop.ac_state as usize == ac {
-                return laptop.get_logo_led_state();
-            }
-        }
-    
-        if let Some(config) = self.get_ac_config(ac) {
-            return config.logo_state;
-        }
-
-        return 0;
     }
 
     pub fn get_fan_rpm(&mut self, ac: usize) -> i32 {

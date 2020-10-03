@@ -227,6 +227,9 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
             comms::DaemonCommand::SetIdle { ac, val } => {
                 Some(comms::DaemonResponse::SetIdle { result: d.change_idle(ac, val) })
             }
+            comms::DaemonCommand::SetSync { sync } => {
+                Some(comms::DaemonResponse::SetSync { result: d.set_sync(sync) })
+            }
             comms::DaemonCommand::GetBrightness{ac} =>  {
                 Some(comms::DaemonResponse::GetBrightness { result: d.get_brightness(ac)})
             },
@@ -238,6 +241,7 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                     rgbdata: map,
                 })
             }
+            comms::DaemonCommand::GetSync() => Some(comms::DaemonResponse::GetSync { sync: d.get_sync() }),
             comms::DaemonCommand::GetFanSpeed{ac} => Some(comms::DaemonResponse::GetFanSpeed { rpm: d.get_fan_rpm(ac)}),
             comms::DaemonCommand::GetPwrLevel{ac} => Some(comms::DaemonResponse::GetPwrLevel { pwr: d.get_power_mode(ac) }),
             comms::DaemonCommand::GetCPUBoost{ac} => Some(comms::DaemonResponse::GetCPUBoost { cpu: d.get_cpu_boost(ac) }),
