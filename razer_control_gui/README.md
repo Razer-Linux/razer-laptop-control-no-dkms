@@ -46,3 +46,6 @@ Custom power control take two more parameters: cpu boost and gpu boost
 * 1 - normal
 * 2 - high
 * 3 - boost (only for CPU and only for Advanced 2020 model and Studio Edition) 
+```
+razer-cli write power ac 4 3 2
+```
