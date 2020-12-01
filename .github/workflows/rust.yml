@@ -13,7 +13,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    working-directory: ./razer_control_gui/service  
+    working-directory: ./razer_control_gui  
     steps:
     - uses: actions/checkout@v2
     - name: Build
