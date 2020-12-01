@@ -5,14 +5,13 @@
 * CLI application for adjusting basic settings
 
 ## Installing
-1. Ensure you have at **least** version 1.2.0 of the kernel module installed
-2. Install cargo or rustc
-3. run install.sh as a normal user
-4. Enjoy!
+1. Install cargo or rustc
+2. run install.sh as a normal user
+3. Enjoy!
 
 ## Usage of CLI Application
 ```
-razer-cli <action> <attribute> <args> 
+razer-cli <action> <attribute> <power_state> <args> 
 ```
 
 ### action
@@ -21,5 +20,29 @@ razer-cli <action> <attribute> <args>
 
 ### attribute
 * fan - Fan RPM. ARG: 0 = Auto, anything else is interpreted as a litteral RPM
-* power - Power mode. ARG: 0 = Balanced, 1 = Gaming, 2 = Creator
+* power - Power mode. ARG: 0 = Balanced, 1 = Gaming, 2 = Creator, 4 = Custom
+* brightness - Change brightness of the keyboard
+* logo - change logo state (for models with logo): 0 = off, 1 = on, 2 = breathing
+* sync - sync light effect for battery/ac
+* standard_effect - effects predefined in keyboard controller
 * colour - Keyboard colour. ARGS: R G B channels, each channel is set from 0 to 255
+
+### power_state
+* ac
+* bat
+
+#### standard_effects
+  * 'off'
+  * 'wave' - PARAMS: <Direction>
+  * 'reactive' - PARAMS: <Speed> <Red> <Green> <Blue>
+  * 'breathing' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]
+  * 'spectrum'
+  * 'static' - PARAMS: <Red> <Green> <Blue>
+  * 'starlight' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]
+
+#### custom power control
+Custom power control take two more parameters: cpu boost and gpu boost
+* 0 - low power
+* 1 - normal
+* 2 - high
+* 3 - boost (only for CPU and only for Advanced 2020 model and Studio Edition) 
