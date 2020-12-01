@@ -1,5 +1,5 @@
 # Razer laptop control project
-A standalone driver + application designed for Razer notebooks
+An application designed for Razer notebooks
 
 ## Join the unofficial Razer linux Channel
 I can be contacted on this discord server under the 'laptop-control' channel
