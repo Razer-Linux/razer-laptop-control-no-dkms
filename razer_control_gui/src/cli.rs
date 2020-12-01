@@ -8,8 +8,8 @@ fn print_help(reason: &str) -> ! {
         ret_code = 1;
     }
     println!("Help:");
-    println!("./razer-cli read <attr> <ac_state>");
-    println!("./razer-cli write <attr> <ac_stete>");
+    println!("./razer-cli read <attr> <ac_state> <params>");
+    println!("./razer-cli write <attr> <ac_state> <params>");
     println!("./razer-cli write standard_effect <effect name> <params>");
     println!("./razer-cli write effect <effect name> <params>");
     println!("");
@@ -48,6 +48,11 @@ fn print_help(reason: &str) -> ! {
     println!("  -> 'static_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>");
     println!("  -> 'wave_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>");
     println!("  -> 'breathing_single' - PARAMS: <Red> <Green> <Blue> <Duration_ms/100>");
+    println!("");
+    println!("Where 'ac_state':");
+    println!("");
+    println!("- ac");
+    println!("- bat");
     std::process::exit(ret_code);
 }
 
