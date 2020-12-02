@@ -67,6 +67,13 @@ fn main() {
     }
     match args[1].to_ascii_lowercase().as_str() {
         "read" => {
+            if args[2].to_ascii_lowercase().as_str() == "sync" {
+                if args.len() != 3 {
+                    print_help("Invalid number of args supplied");
+                }
+                read_sync();
+                return;
+            }
             if args.len() != 4 {
                 print_help("Invalid number of args supplied");
             }
