@@ -310,11 +310,11 @@ impl DeviceManager {
     }
 
     pub fn get_logo_led_state(&mut self, ac: usize) -> u8 {
-        if let Some(laptop) = self.get_device() {
-            if laptop.ac_state as usize == ac {
-                return laptop.get_logo_led_state();
-            }
-        }
+        // if let Some(laptop) = self.get_device() {
+            // if laptop.ac_state as usize == ac {
+                // return laptop.get_logo_led_state();
+            // }
+        // }
     
         if let Some(config) = self.get_ac_config(ac) {
             return config.logo_state;
@@ -780,7 +780,11 @@ impl RazerLaptop {
             let mut report: RazerPacket = RazerPacket::new(0x03, 0x02, 0x03);
             report.args[0] = RazerLaptop::VARSTORE;
             report.args[1] = RazerLaptop::LOGO_LED;
-            report.args[2] = self.clamp_u8(mode, 0x00, 0x02);
+            if mode == 1 {
+                report.args[2] = 0x00;
+            } else if mode == 2 {
+                report.args[2] = 0x02;
+            }
             self.send_report(report);
         }
 
@@ -795,6 +799,7 @@ impl RazerLaptop {
         return false;
     }
 
+    #[allow(dead_code)]
     pub fn get_logo_led_state(&mut self) -> u8 {
         let mut report: RazerPacket = RazerPacket::new(0x03, 0x82, 0x03);
         report.args[0] = RazerLaptop::VARSTORE;
