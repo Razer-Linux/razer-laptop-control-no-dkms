@@ -38,6 +38,7 @@ pub struct Configuration {
     pub sync: bool, // sync light settings between ac and battery
     pub no_light: f64, // no light bellow this percentage of battery
     pub standard_effect: u8,
+    pub standard_effect_params: Vec<u8>,
 }
 
 impl Configuration {
@@ -47,6 +48,7 @@ impl Configuration {
             sync: false,
             no_light: 0.0,
             standard_effect: 0, // off
+            standard_effect_params: vec![]
         };
     }
 

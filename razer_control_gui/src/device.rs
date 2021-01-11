@@ -220,6 +220,18 @@ impl DeviceManager {
         }
     }
 
+    pub fn restore_standard_effect(&mut self) {
+        let mut effect = 0;
+        let mut params: Vec<u8> = vec![];
+        if let Some(config) = self.get_config() {
+            effect = config.standard_effect;
+            params = config.standard_effect_params.clone();
+        }
+        if let Some(laptop) = self.get_device() {
+            laptop.set_standard_effect(effect, params);
+        }
+    }
+
     pub fn change_idle(&mut self, ac: usize, timeout: u32) -> bool {
         // let mut arm: bool = false;
         if let Some(config) = self.get_config() {
@@ -260,6 +272,21 @@ impl DeviceManager {
         }
 
         return res;
+    }
+
+    pub fn set_standard_effect(&mut self, effect_id: u8, params: Vec<u8>) -> bool {
+        if let Some(mut config) = self.get_config() {
+            config.standard_effect = effect_id;
+            config.standard_effect_params = params.clone();
+            if let Err(e) = config.write_to_file() {
+                eprintln!("Error write config {:?}", e);
+            }
+        }
+        if let Some(laptop) = self.get_device() {
+            laptop.set_standard_effect(effect_id, params);
+        }
+
+        return true;
     }
 
     pub fn set_fan_rpm(&mut self, ac:usize, rpm: i32) -> bool {

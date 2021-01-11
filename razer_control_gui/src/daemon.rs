@@ -57,6 +57,7 @@ fn main() {
         if let Ok(online) = proxy_ac.online() {
             println!("Online AC0: {:?}", online);
             d.set_ac_state(online);
+            d.restore_standard_effect();
             if let Ok(json) = config::Configuration::read_effects_file() {
                 EFFECT_MANAGER.lock().unwrap().load_from_save(json);
             } else {
@@ -282,13 +283,13 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                     if let Ok(mut k) = EFFECT_MANAGER.lock() {
                         k.pop_effect(laptop); // Remove old layer
                         let _res = match name.as_str() {
-                            "off" => laptop.set_standard_effect(device::RazerLaptop::OFF, params),
-                            "wave" => laptop.set_standard_effect(device::RazerLaptop::WAVE, params),
-                            "reactive" => laptop.set_standard_effect(device::RazerLaptop::REACTIVE, params),
-                            "breathing" => laptop.set_standard_effect(device::RazerLaptop::BREATHING, params),
-                            "spectrum" => laptop.set_standard_effect(device::RazerLaptop::SPECTRUM, params),
-                            "static" => laptop.set_standard_effect(device::RazerLaptop::STATIC, params),
-                            "starlight" => laptop.set_standard_effect(device::RazerLaptop::STARLIGHT, params), 
+                            "off" => d.set_standard_effect(device::RazerLaptop::OFF, params),
+                            "wave" => d.set_standard_effect(device::RazerLaptop::WAVE, params),
+                            "reactive" => d.set_standard_effect(device::RazerLaptop::REACTIVE, params),
+                            "breathing" => d.set_standard_effect(device::RazerLaptop::BREATHING, params),
+                            "spectrum" => d.set_standard_effect(device::RazerLaptop::SPECTRUM, params),
+                            "static" => d.set_standard_effect(device::RazerLaptop::STATIC, params),
+                            "starlight" => d.set_standard_effect(device::RazerLaptop::STARLIGHT, params), 
                             _ => false,
                         };
                         res = _res;
