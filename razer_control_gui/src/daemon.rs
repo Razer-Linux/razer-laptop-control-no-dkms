@@ -16,6 +16,7 @@ use std::{thread, time};
 mod battery;
 mod dbus_mutter_displayconfig;
 mod dbus_mutter_idlemonitor;
+mod login1;
 
 lazy_static! {
     static ref EFFECT_MANAGER: Mutex<kbd::EffectManager> = Mutex::new(kbd::EffectManager::new());
@@ -150,10 +151,10 @@ fn main() {
         });
 
         let proxy_battery = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/battery_BAT0", time::Duration::from_millis(5000));
-        use battery::OrgFreedesktopUPowerDevice;
-        if let Ok(perc) = proxy_battery.percentage() {
-            println!("battery percentage: {:.1}", perc);
-        }
+        // use battery::OrgFreedesktopUPowerDevice;
+        // if let Ok(perc) = proxy_battery.percentage() {
+            // println!("battery percentage: {:.1}", perc);
+        // }
         let _id = proxy_battery.match_signal(|h: battery::OrgFreedesktopDBusPropertiesPropertiesChanged, _: &Connection, _: &Message| {
             let perc: Option<&f64> = arg::prop_cast(&h.changed_properties, "Percentage");
             if let Some(perc) = perc {
@@ -161,6 +162,16 @@ fn main() {
             }
             true
         });
+
+        let proxy_login = dbus_system.with_proxy("org.freedesktop.login1", "/org/freedesktop/login1", time::Duration::from_millis(5000));
+        let _id = proxy_login.match_signal(|h: login1::OrgFreedesktopLogin1ManagerPrepareForSleep, _: &Connection, _: &Message| {
+            println!("PrepareForSleep {:?}", h.start);
+            if let Ok(mut d) = DEV_MANAGER.lock() {
+                d.set_ac_state_get();
+            }
+            true
+        });
+        // use login1::OrgFreedesktopLogin1ManagerPrepareForSleep;
         loop { dbus_system.process(time::Duration::from_millis(1000)).unwrap(); }
     });
 

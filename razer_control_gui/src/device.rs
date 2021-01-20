@@ -5,6 +5,8 @@ use std::{thread, time, io, fs, env};
 use hidapi::HidApi;
 use crate::dbus_mutter_idlemonitor;
 use crate::config;
+use crate::battery;
+use dbus::blocking::Connection;
 
 const RAZER_VENDOR_ID: u16 = 0x1532;
 
@@ -465,6 +467,26 @@ impl DeviceManager {
                 laptop.set_config(config);
             }
         }
+    }
+
+    pub fn set_ac_state_get(&mut self) {
+        let dbus_system = Connection::new_system()
+            .expect("failed to connect to D-Bus system bus");
+        let proxy_ac = dbus_system.with_proxy("org.freedesktop.UPower", "/org/freedesktop/UPower/devices/line_power_AC0", time::Duration::from_millis(5000));
+        use battery::OrgFreedesktopUPowerDevice;
+        if let Ok(online) = proxy_ac.online() {
+            if let Some(laptop) = self.get_device() {
+                laptop.set_ac_state(online);
+            }
+            self.change_idle = true;
+            let config: Option<config::PowerConfig> = self.get_ac_config(online as usize);
+            if let Some(config) = config {
+                if let Some(laptop) = self.get_device() {
+                    laptop.set_config(config);
+                }
+            }
+        }
+
     }
 
     pub fn get_device(&mut self) -> Option<&mut RazerLaptop> {
