@@ -15,6 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Install dependency
+      run: >
+        apt install
+        libdbus-1-dev 
+        pkg-config
     - name: Build
       working-directory: ./razer_control_gui
       run: cargo build --verbose
