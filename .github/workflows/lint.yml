@@ -24,11 +24,10 @@ jobs:
           components: rustfmt, clippy
       - uses: actions-rs/cargo@v1
         with:
-          working-directory: ./razer_control_gui
           command: fmt
-          args: --all -- --check --manifest-path=./razer_control_gui
+          args: --all -- --check --manifest-path ./razer_control_gui
       - uses: actions-rs/cargo@v1
         with:
           working-directory: ./razer_control_gui
           command: clippy
-          args: -- -D warnings
+          args: -- -D warnings --manifest-path ./razer_control_gui
