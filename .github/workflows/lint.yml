@@ -8,6 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependency
+        run: >
+          sudo apt-get install
+          libdbus-1-dev
+          libusb-dev
+          libhidapi-dev
+          libhidapi-hidraw0
+          pkg-config
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -16,9 +24,11 @@ jobs:
           components: rustfmt, clippy
       - uses: actions-rs/cargo@v1
         with:
+          working-directory: ./razer_control_gui
           command: fmt
           args: --all -- --check
       - uses: actions-rs/cargo@v1
         with:
+          working-directory: ./razer_control_gui
           command: clippy
           args: -- -D warnings
