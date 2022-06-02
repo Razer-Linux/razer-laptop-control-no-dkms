@@ -20,6 +20,8 @@ jobs:
         sudo apt-get install
         libdbus-1-dev
         libusb-dev
+        libhidapi-dev
+        libhidapi-hidraw0
         pkg-config
     - name: Build
       working-directory: ./razer_control_gui
