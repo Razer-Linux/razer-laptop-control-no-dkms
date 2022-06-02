@@ -14,9 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - working-directory: ./razer_control_gui
     - uses: actions/checkout@v2
     - name: Build
+      working-directory: ./razer_control_gui
       run: cargo build --verbose
     - name: Run tests
+      working-directory: ./razer_control_gui
       run: cargo test --verbose
