@@ -7,6 +7,9 @@ assignees: UKSFM99
 
 ---
 
+**Daemon status log**
+post result form `systemctl --user status razerdaemon.service`
+
 **Describe the bug**
 A clear way of describing how the driver is misbehaving
 
