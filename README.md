@@ -1,7 +1,3 @@
-This repo will not be updated anymore
-
-[New link](https://github.com/phush0/razer-laptop-control-no-dkms)
-
 # Razer laptop control project
 An application designed for Razer notebooks
 
