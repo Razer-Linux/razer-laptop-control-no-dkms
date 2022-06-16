@@ -77,7 +77,7 @@ impl RazerPacket {
     }
 }
 
-const DEVICE_FILE: &str = "/.local/share/razercontrol/data/devices/laptops.json";
+const DEVICE_FILE: &str = "/usr/share/razercontrol/laptops.json";
 pub struct DeviceManager {
     pub device: Option <RazerLaptop>,
     supported_devices: Vec<SupportedDevice>,
@@ -172,7 +172,7 @@ impl DeviceManager {
     }
 
     pub fn read_laptops_file() -> io::Result<DeviceManager > {
-        let str: Vec<u8> = fs::read(env::var("HOME").unwrap() + DEVICE_FILE)?;
+        let str: Vec<u8> = fs::read(DEVICE_FILE)?;
         let mut res: DeviceManager = DeviceManager::new();
         res.supported_devices = serde_json::from_slice(str.as_slice())?;
         println!("suported devices found: {:?}", res.supported_devices.len());
