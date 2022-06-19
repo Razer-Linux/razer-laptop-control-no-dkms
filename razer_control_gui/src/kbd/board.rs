@@ -1,4 +1,6 @@
-// use crate::driver_sysfs;
+/*
+use crate::driver_sysfs;
+*/
 use crate::device;
 use std::cmp::Ordering;
 use std::ops;
@@ -185,14 +187,14 @@ impl RowData {
 #[derive(Copy, Clone, Debug)]
 pub struct KeyboardData {
     rows: [RowData; ROWS],
-    brightness: u8,
+    // brightness: u8,
 }
 
 impl KeyboardData {
     pub fn new() -> KeyboardData {
         return KeyboardData {
             rows: [RowData::new(); ROWS],
-            brightness: 0,
+            // brightness: 0,
         };
     }
 

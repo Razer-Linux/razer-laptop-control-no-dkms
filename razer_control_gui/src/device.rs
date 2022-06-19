@@ -1,7 +1,7 @@
 // mod kbd;
 use serde::{Deserialize, Serialize};
 use serde_big_array::big_array;
-use std::{thread, time, io, fs, env};
+use std::{thread, time, io, fs};
 use hidapi::HidApi;
 use crate::dbus_mutter_idlemonitor;
 use crate::config;
