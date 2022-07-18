@@ -3,6 +3,7 @@
 cargo build --release
 
 systemctl --user stop razerdaemon.service
+mkdir -p ~/.local/share/razercontrol
 sudo /bin/bash << EOF
 mkdir -p /usr/share/razercontrol
 systemctl stop razerdaemon.service
