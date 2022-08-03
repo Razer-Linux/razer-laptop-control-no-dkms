@@ -167,6 +167,14 @@
         "pid": "0276",
         "features": [],
         "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade late 2021 15 base",
+        "vid": "1532",
+        "pid": "027F",
+        "features": [],
+        "fan": [3500, 5000]
     }
+
 
 ]
