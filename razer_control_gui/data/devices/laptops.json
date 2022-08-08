@@ -171,14 +171,14 @@
     {
         "name": "Blade late 2021 15 advanced",
         "vid": "1532",
-        "pid": "027A",
+        "pid": "026D",
         "features": [],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade late 2021 15 base",
         "vid": "1532",
-        "pid": "027F",
+        "pid": "027A",
         "features": [],
         "fan": [3500, 5000]
     }
