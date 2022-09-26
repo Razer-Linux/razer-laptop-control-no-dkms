@@ -30,6 +30,8 @@
 
           postInstall = ''
             mkdir -p $out/lib/udev/rules.d
+            mkdir -p $out/libexec
+            mv $out/bin/daemon $out/libexec
             cp ${./razer_control_gui/data/udev/99-hidraw-permissions.rules} $out/lib/udev/rules.d/99-hidraw-permissions.rules
           '';
 
@@ -59,13 +61,16 @@
             config = mkIf cfg.enable {
               services.upower.enable = true;
 
+              environment.systemPackages = [packages.default];
+
               services.udev.packages = [packages.default];
 
               systemd.user.services."razerdaemon" = {
                 description = "Razer laptop control daemon";
                 serviceConfig = {
                   Type = "simple";
-                  ExecStart = "${packages.default}/bin/daemon";
+                  ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.local/share/razercontrol";
+                  ExecStart = "${packages.default}/libexec/daemon";
                 };
                 wantedBy = ["default.target"];
               };
