@@ -183,6 +183,13 @@
         "fan": [3500, 5000]
     },
     {
+        "name": "Blade early 2022 15 advanced",
+        "vid": "1532",
+        "pid": "028A",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
         "name": "Blade 2022 17",
         "vid": "1532",
         "pid": "028B",
