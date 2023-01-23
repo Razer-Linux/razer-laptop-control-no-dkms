@@ -195,5 +195,12 @@
         "pid": "028B",
         "features": ["boost"],
         "fan": [3500, 5000]
+    },
+    {
+        "name": "Blade late 2020 stealth",
+        "vid": "1532",
+        "pid": "0259",
+        "features": [],
+        "fan": [3500, 5000]
     }
 ]
