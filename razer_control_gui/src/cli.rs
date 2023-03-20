@@ -24,7 +24,7 @@ fn print_help(reason: &str) -> ! {
     println!("                  0..3 = cpu boost");
     println!("                  0..2 = gpu boost");
     println!("");
-    println!("- brightness  -> Logo mode.");
+    println!("- brightness  -> Keyboard brightness.");
     println!("                  0..100 percents");
     println!("");
     println!("- logo        -> Logo mode.");
