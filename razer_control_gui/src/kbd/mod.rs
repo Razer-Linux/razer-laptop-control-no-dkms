@@ -102,6 +102,7 @@ impl EffectLayer {
             "Static" => Some(effects::Static::new(args)),
             "Wave Gradient" => Some(effects::WaveGradient::new(args)),
             "Breathing Single" => Some(effects::BreathSingle::new(args)),
+            "Static Gradient" => Some(effects::StaticGradient::new(args)),
             _ => None,
         };
         if effect.is_none() {
