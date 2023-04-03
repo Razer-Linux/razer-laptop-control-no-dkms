@@ -24,7 +24,7 @@ big_array! {
     +80
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RazerPacket {
     report: u8,
     status: u8,
@@ -493,6 +493,17 @@ impl DeviceManager {
         return self.device.as_mut();
     }
 
+    pub fn set_bho_handler(&mut self, is_on: bool, threshold: u8) -> bool {
+        return self.get_device()
+            .map_or(false, |laptop| laptop.set_bho(is_on, threshold));
+    }
+
+    pub fn get_bho_handler(&mut self) -> Option<(bool, u8)> {
+        return self.get_device()
+            .and_then(|laptop| laptop.get_bho()
+            .map(|result| byte_to_bho(result)));
+    } 
+
     fn get_config(&mut  self) -> Option<&mut config::Configuration> {
         return self.config.as_mut();
     }
@@ -882,6 +893,34 @@ impl RazerLaptop {
         return 0;
     }
 
+    pub fn get_bho(&mut self) -> Option<u8> {
+        if !self.have_feature("bho".to_string()) {
+            return None;
+        }
+
+        let mut report: RazerPacket = RazerPacket::new(0x07, 0x92, 0x01);
+        report.args[0] = 0x00;
+
+        return self.send_report(report)
+            .map(|resp| resp.args[0]);
+    }
+
+    pub fn set_bho(&mut self, is_on: bool, threshold: u8) -> bool {
+        if !self.have_feature("bho".to_string()) {
+            return false;
+        }
+
+        let mut report = RazerPacket::new(0x07, 0x12, 0x01);
+        report.args[0] = bho_to_byte(is_on, threshold);
+
+        return self.send_report(report)
+            .map_or(false, |r| { 
+                println!("Response Packet:\n{:#?}", r); 
+                true
+            } 
+        );
+    }
+
     fn send_report(&mut self, mut report: RazerPacket) -> Option<RazerPacket>{
         let mut temp_buf: [u8; 91] = [0x00; 91];
         for _ in 0..3 {
@@ -893,6 +932,11 @@ impl RazerLaptop {
                             if size == 91 {
                                 match bincode::deserialize::<RazerPacket>(&temp_buf){
                                     Ok(response) => {
+                                        // when request bho status the response command id is different from the request command id...
+                                        if response.command_id == 0x92 {
+                                            return Some(response);
+                                        }
+
                                         if response.remaining_packets != report.remaining_packets || 
                                             response.command_class != report.command_class ||
                                                 response.command_id != report.command_id {
@@ -928,6 +972,18 @@ impl RazerLaptop {
         thread::sleep(time::Duration::from_micros(8000));
         return None;
     }
+
 }
 
+// top bit flags whether battery health optimization is on or off
+// bottom bits are the actual threshold that it is set to
+fn byte_to_bho(u: u8) -> (bool, u8) {
+    return (u & (1 << 7) != 0, (u & 0b0111_1111) as u8);
+}
 
+fn bho_to_byte(is_on: bool, threshold: u8) -> u8 {
+    if is_on {
+        return threshold | 0b1000_0000;
+    }
+    return threshold;
+}
