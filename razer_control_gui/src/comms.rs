@@ -24,6 +24,8 @@ pub enum DaemonCommand {
     GetBrightness { ac: usize },
     SetSync { sync: bool },
     GetSync (),
+    SetBatteryHealthOptimizer { is_on: bool, threshold: u8 },
+    GetBatteryHealthOptimizer () 
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,6 +48,8 @@ pub enum DaemonResponse {
     GetBrightness { result: u8 },
     SetSync { result: bool },
     GetSync { sync: bool },
+    SetBatteryHealthOptimizer { result: bool },
+    GetBatteryHealthOptimizer { is_on: bool, threshold: u8 }
 }
 
 #[allow(dead_code)]

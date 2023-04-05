@@ -3,56 +3,56 @@ use std::{env, format};
 
 fn print_help(reason: &str) -> ! {
     let mut ret_code = 0;
+
     if reason.len() > 1 {
         println!("ERROR: {}", reason);
         ret_code = 1;
     }
-    println!("Help:");
-    println!("./razer-cli read <attr> <ac_state> <params>");
-    println!("./razer-cli write <attr> <ac_state> <params>");
-    println!("./razer-cli write standard_effect <effect name> <params>");
-    println!("./razer-cli write effect <effect name> <params>");
-    println!("");
-    println!("Where 'attr':");
-    println!("- fan         -> Cooling fan RPM. 0 is automatic");
-    println!("");
-    println!("- power       -> Power mode.");
-    println!("              0 = Balanced (Normal)");
-    println!("              1 = Gaming");
-    println!("              2 = Creator");
-    println!("              4 = Custom ->");
-    println!("                  0..3 = cpu boost");
-    println!("                  0..2 = gpu boost");
-    println!("");
-    println!("- brightness  -> Keyboard brightness.");
-    println!("                  0..100 percents");
-    println!("");
-    println!("- logo        -> Logo mode.");
-    println!("                  0 = Off");
-    println!("                  1 = On");
-    println!("                  2 = Breathing");
-    println!("");
-    println!("- sync        -> Sync light effects on battery and ac on/off");
-    println!("");
-    println!("- standard_effect:");
-    println!("  -> 'off'");
-    println!("  -> 'wave' - PARAMS: <Direction>");
-    println!("  -> 'reactive' - PARAMS: <Speed> <Red> <Green> <Blue>");
-    println!("  -> 'breathing' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]");
-    println!("  -> 'spectrum'");
-    println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
-    println!("  -> 'starlight' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]");
-    println!("");
-    println!("- effect:");
-    println!("  -> 'static' - PARAMS: <Red> <Green> <Blue>");
-    println!("  -> 'static_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>");
-    println!("  -> 'wave_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>");
-    println!("  -> 'breathing_single' - PARAMS: <Red> <Green> <Blue> <Duration_ms/100>");
-    println!("");
-    println!("Where 'ac_state':");
-    println!("");
-    println!("- ac");
-    println!("- bat");
+
+    let blurb: &'static str = "Help:
+./razer-cli read <attr> <ac_state> <params>
+./razer-cli write <attr> <ac_state> <params>
+./razer-cli write standard_effect <effect name> <params>
+./razer-cli write effect <effect name> <params>
+
+Where 'attr':
+- fan         -> Cooling fan RPM. 0 is automatic
+- power       -> Power mode.
+              0 = Balanced (Normal)
+              1 = Gaming
+              2 = Creator
+              4 = Custom ->
+                  0..3 = cpu boost
+                  0..2 = gpu boost
+- brightness  -> Keyboard brightness. 
+                  0..100 percents
+- logo        -> Logo mode.
+                  0 = Off
+                  1 = On
+                  2 = Breathing
+- sync        -> Sync light effects on battery and ac on/off
+- standard_effect:
+  -> 'off'
+  -> 'wave' - PARAMS: <Direction>
+  -> 'reactive' - PARAMS: <Speed> <Red> <Green> <Blue>
+  -> 'breathing' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]
+  -> 'spectrum'
+  -> 'static' - PARAMS: <Red> <Green> <Blue>
+  -> 'starlight' - PARAMS: <Type> [Red] [Green] [Blue] [Red] [Green] [Blue]
+- effect:
+  -> 'static' - PARAMS: <Red> <Green> <Blue>
+  -> 'static_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>
+  -> 'wave_gradient' - PARAMS: <Red1> <Green1> <Blue1> <Red2> <Green2> <Blue2>
+  -> 'breathing_single' - PARAMS: <Red> <Green> <Blue> <Duration_ms/100>
+- bho:
+  -> 'on' - PARAMS: <threshold [50, 80] multiples of 5>
+  -> 'off' 
+Where 'ac_state':
+- ac
+- bat";
+
+    println!("{}", blurb);
+
     std::process::exit(ret_code);
 }
 
@@ -67,6 +67,10 @@ fn main() {
     }
     match args[1].to_ascii_lowercase().as_str() {
         "read" => {
+            if args[2].to_ascii_lowercase().as_str() == "bho" {
+                read_bho();
+                return;
+            }
             if args[2].to_ascii_lowercase().as_str() == "sync" {
                 if args.len() != 3 {
                     print_help("Invalid number of args supplied");
@@ -116,6 +120,30 @@ fn main() {
                 write_pwr_mode(ac, args);
                 return;
             }
+            if args[2].to_ascii_lowercase().as_str() == "bho" {
+                if args.len() < 4 {
+                    print_help("did not provide enough arguments")
+                }
+                match args[3].to_ascii_lowercase().as_str() {
+                    "on" => {
+                        if args.len() != 5 {
+                            print_help("must provide threshold in range [50, 80]")
+                        }
+
+                        let threshold = args[4].parse::<u8>().unwrap();
+                        write_bho(true, threshold);
+                        return;
+                    },
+                    "off" => {
+                        if args.len() != 4 {
+                            print_help("provided too many arguments")
+                        }
+                        write_bho(false, 0);
+                        return;
+                    },
+                    _ => print_help("provided invalid option for on/off")
+                }
+            }
             if args[2].to_ascii_lowercase().as_str() == "sync" {
                 if args.len() != 4 {
                     print_help("Invalid number of args supplied");
@@ -154,6 +182,81 @@ fn main() {
         _ => print_help(format!("Unrecognised argument: `{}`", args[1]).as_str())
     }
 }
+
+fn read_bho() {
+    send_data(comms::DaemonCommand::GetBatteryHealthOptimizer())
+        .map_or_else(|| eprintln!("Unknown error occured when getting bho"), |result| {
+            if let comms::DaemonResponse::GetBatteryHealthOptimizer{is_on, threshold} = result {
+                match is_on {
+                    true => {
+                        println!("Battery health optimization is on with a threshold of {}", threshold);
+                    }
+                    false => {
+                        eprintln!("Battery health optimization is off");
+                    }
+                }
+            }
+        });
+}
+
+fn write_bho(on: bool, threshold: u8) {
+    if !on {
+        bho_toggle_off();
+        return;
+    }
+
+    bho_toggle_on(threshold);
+}
+
+fn bho_toggle_on(threshold: u8) {
+    if !valid_bho_threshold(threshold) {
+        eprintln!("Threshold value must be a multiple of five between 50 and 80");
+        return;
+    }
+
+    send_data(comms::DaemonCommand::SetBatteryHealthOptimizer { is_on: true, threshold: threshold })
+        .map_or_else(|| { eprintln!("Unknown error occured when toggling bho") }, |result| {
+            if let comms::DaemonResponse::SetBatteryHealthOptimizer { result } = result {
+                match result {
+                    true => {
+                        println!("Battery health optimization is on with a threshold of {}", threshold);
+                    }
+                    false => {
+                        eprintln!("Failed to turn on bho with threshold of {}", threshold);
+                    }
+                }
+            }
+        });
+}
+
+fn valid_bho_threshold(threshold: u8) -> bool {
+    if threshold%5 != 0 {
+        return false;
+    }
+
+    if threshold < 50 || threshold > 80 {
+        return false;
+    }
+
+    return true;
+}
+
+fn bho_toggle_off() {
+    send_data(comms::DaemonCommand::SetBatteryHealthOptimizer { is_on: false, threshold: 80 })
+        .map_or_else(|| { eprintln!("Unknown error occured when toggling bho") }, |result| {
+            if let comms::DaemonResponse::SetBatteryHealthOptimizer{result} = result {
+                match result {
+                    true => {
+                        println!("Successfully turned off bho");
+                    }
+                    false => {
+                        eprintln!("Failed to turn off bho");
+                    }
+                }
+            }
+        });
+}
+
 fn write_standard_effect(opt: Vec<String>) {
     println!("Write standard effect: Args: {:?}", opt);
     let name = opt[0].clone();

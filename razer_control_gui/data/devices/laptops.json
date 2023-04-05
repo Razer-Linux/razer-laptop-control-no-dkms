@@ -207,7 +207,7 @@
         "name": "Blade late 16",
         "vid": "1532",
         "pid": "029F",
-        "features": [],
-        "fan": [3500, 5000]
+        "features": ["boost", "bho"],
+        "fan": [2200, 5000]
     }
 ]
