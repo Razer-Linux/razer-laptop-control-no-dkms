@@ -197,6 +197,13 @@
         "fan": [3500, 5000]
     },
     {
+        "name": "Blade 2022 14",
+        "vid": "1532",
+        "pid": "028C",
+        "features": [],
+        "fan": [3500, 5000]
+    },
+    {
         "name": "Blade late 2020 stealth",
         "vid": "1532",
         "pid": "0259",
