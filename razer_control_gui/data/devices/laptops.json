@@ -200,7 +200,7 @@
         "name": "Blade 2022 14",
         "vid": "1532",
         "pid": "028C",
-        "features": [],
+        "features": ["boost", "bho"],
         "fan": [3500, 5000]
     },
     {
