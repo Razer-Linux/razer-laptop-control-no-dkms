@@ -644,17 +644,6 @@ impl RazerLaptop {
         return (rpm / 100) as u8;
     }
 
-    fn clamp_u8(&mut self, value: u8, min: u8, max: u8) ->u8 {
-        if value > max {
-            return max;
-        }
-        if value < min {
-            return min;
-        }
-
-        return value;
-    }
-
     pub fn set_standard_effect(&mut self, effect_id: u8, params: Vec<u8>) -> bool {
         let mut report: RazerPacket = RazerPacket::new(0x03, 0x0a, 80);
         report.args[0] = effect_id; // effect id
@@ -836,22 +825,27 @@ impl RazerLaptop {
     }
 
     pub fn set_logo_led_state(&mut self, mode: u8) -> bool {
-        if mode > 0 {
-            let mut report: RazerPacket = RazerPacket::new(0x03, 0x02, 0x03);
-            report.args[0] = RazerLaptop::VARSTORE;
-            report.args[1] = RazerLaptop::LOGO_LED;
-            if mode == 1 {
-                report.args[2] = 0x00;
-            } else if mode == 2 {
-                report.args[2] = 0x02;
-            }
-            self.send_report(report);
-        }
-
-        let mut report: RazerPacket = RazerPacket::new(0x03, 0x00, 0x03);
+        let mut report: RazerPacket = RazerPacket::new(0x03, 0x02, 0x03);
         report.args[0] = RazerLaptop::VARSTORE;
         report.args[1] = RazerLaptop::LOGO_LED;
-        report.args[2] = self.clamp_u8(mode, 0x00, 0x01);
+
+        match mode {
+            0 => {
+                // setting command id is all that is needed to shut off logo
+                report.command_id = 0x00;
+            },
+            1 => {
+                report.args[2] = 0x00;
+            },
+            2 => {
+                report.args[2] = 0x02;
+            },
+            _ => {
+                println!("failed to recognize requested led mode");
+                return false;
+            }
+        }
+        
         if let Some(_) = self.send_report(report) {
             return true;
         }
