@@ -1,11 +1,12 @@
 {
   description = "razer-laptop-control";
 
-  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs = {
+    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  };
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
-  outputs = {
+  outputs = inputs @ {
     self,
     nixpkgs,
     flake-utils,
@@ -14,10 +15,10 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
         name = "razer-laptop-control";
-      in rec {
-        packages.default = pkgs.rustPlatform.buildRustPackage rec {
+      in {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = name;
-          version = "0.0.1";
+          version = "0.2.0";
 
           nativeBuildInputs = with pkgs; [pkg-config];
           buildInputs = with pkgs; [dbus.dev hidapi];
@@ -39,43 +40,41 @@
             lockFile = ./razer_control_gui/Cargo.lock;
           };
         };
-        defaultPackage = packages.default;
-
-        nixosModules.default = {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-          with lib; let
-            cfg = config.services.razer-laptop-control;
-          in {
-            options.services.razer-laptop-control = {
-              enable = mkEnableOption "Enables razer-laptop-control";
-              package = mkOption {
-                type = types.package;
-                default = packages.default;
-              };
-            };
-
-            config = mkIf cfg.enable {
-              services.upower.enable = true;
-
-              environment.systemPackages = [packages.default];
-
-              services.udev.packages = [packages.default];
-
-              systemd.user.services."razerdaemon" = {
-                description = "Razer laptop control daemon";
-                serviceConfig = {
-                  Type = "simple";
-                  ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.local/share/razercontrol";
-                  ExecStart = "${packages.default}/libexec/daemon";
-                };
-                wantedBy = ["default.target"];
-              };
+      }
+    )
+    // {
+      nixosModules.default = {
+        config,
+        lib,
+        pkgs,
+        ...
+      }:
+        with lib; let
+          cfg = config.services.razer-laptop-control;
+        in {
+          options.services.razer-laptop-control = {
+            enable = mkEnableOption "Enables razer-laptop-control";
+            package = mkOption {
+              type = types.package;
+              default = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.default;
             };
           };
-      }
-    );
+
+          config = mkIf cfg.enable {
+            services.upower.enable = true;
+            environment.systemPackages = [cfg.package];
+            services.udev.packages = [cfg.package];
+
+            systemd.user.services."razerdaemon" = {
+              description = "Razer laptop control daemon";
+              serviceConfig = {
+                Type = "simple";
+                ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.local/share/razercontrol";
+                ExecStart = "${cfg.package}/libexec/daemon";
+              };
+              wantedBy = ["default.target"];
+            };
+          };
+        };
+    };
 }
