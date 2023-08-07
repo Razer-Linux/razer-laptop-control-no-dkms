@@ -1,6 +1,6 @@
 mod comms;
-use clap::{command, value_parser, Arg, ArgAction, Command};
-use std::{format};
+use clap::{Arg, Command};
+use std::format;
 
 fn print_help(reason: &str) -> ! {
     let mut ret_code = 0;
