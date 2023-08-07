@@ -9,7 +9,7 @@ edition = "2021"
 
 [[bin]]
 name = "razer-cli"
-path = "src/cli.rs"
+path = "src/clap_cli.rs"
 
 [[bin]]
 name = "daemon"
@@ -26,3 +26,4 @@ bincode = "1.3.1"
 systemstat = "0.2.3"
 hidapi = { version = "2.4.1", default-features = false, features = ["linux-shared-hidraw"] }
 serde-big-array = "0.5.1"
+clap = { version = "4.3.19" }
