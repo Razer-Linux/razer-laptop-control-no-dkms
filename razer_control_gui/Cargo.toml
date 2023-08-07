@@ -9,6 +9,10 @@ edition = "2021"
 
 [[bin]]
 name = "razer-cli"
+path = "src/cli.rs"
+
+[[bin]]
+name = "razer-cli2"
 path = "src/clap_cli.rs"
 
 [[bin]]
