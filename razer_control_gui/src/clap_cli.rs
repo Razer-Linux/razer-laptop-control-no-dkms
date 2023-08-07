@@ -115,10 +115,7 @@ fn main() {
             "fan" => {
                 read_fan_rpm(power_config.expect(no_config_err));
             }
-            "ac" => {
-                read_power_mode(power_config.expect(no_config_err))
-            },
-            "battery" => {
+            "power" => {
                 read_power_mode(power_config.expect(no_config_err))
             },
             "brightness" => {
