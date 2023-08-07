@@ -1,6 +1,6 @@
 // mod kbd;
 use serde::{Deserialize, Serialize};
-use serde_big_array::big_array;
+use serde_big_array::BigArray;
 use std::{thread, time, io, fs};
 use hidapi::HidApi;
 use crate::dbus_mutter_idlemonitor;
@@ -17,11 +17,6 @@ pub struct SupportedDevice {
     pub pid: String,
     pub features: Vec<String>,
     pub fan: Vec<u16>,
-}
-
-big_array! { 
-    BigArray; 
-    +80
 }
 
 #[derive(Serialize, Deserialize, Debug)]
