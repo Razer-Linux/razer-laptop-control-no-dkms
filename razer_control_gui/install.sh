@@ -17,7 +17,6 @@ echo "Creating directories, copying files, and setting up services..."
 mkdir -p ~/.local/share/razercontrol
 sudo /bin/bash << EOF
 mkdir -p /usr/share/razercontrol
-systemctl stop razerdaemon.service
 cp target/release/razer-cli /usr/bin/
 cp target/release/daemon /usr/share/razercontrol/
 cp data/devices/laptops.json /usr/share/razercontrol/
