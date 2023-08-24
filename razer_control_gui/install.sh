@@ -2,6 +2,12 @@
 
 cargo build --release
 
+# Check if the build was successful
+if [ $? -ne 0 ]; then
+    echo "Build failed, exiting."
+    exit 1
+fi
+
 systemctl --user stop razerdaemon.service
 mkdir -p ~/.local/share/razercontrol
 sudo /bin/bash << EOF
