@@ -1,6 +1,6 @@
 // mod kbd;
 use serde::{Deserialize, Serialize};
-use serde_big_array::big_array;
+use serde_big_array::BigArray;
 use std::{thread, time, io, fs};
 use hidapi::HidApi;
 use crate::dbus_mutter_idlemonitor;
@@ -17,11 +17,6 @@ pub struct SupportedDevice {
     pub pid: String,
     pub features: Vec<String>,
     pub fan: Vec<u16>,
-}
-
-big_array! { 
-    BigArray; 
-    +80
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -256,7 +251,7 @@ impl DeviceManager {
 
     pub fn set_power_mode(&mut self, ac: usize, pwr: u8, cpu: u8, gpu: u8) -> bool {
         let mut res: bool = false;
-        if let Some(mut config) = self.get_config() {
+        if let Some(config) = self.get_config() {
             config.power[ac].power_mode = pwr;
             config.power[ac].cpu_boost = cpu;
             config.power[ac].gpu_boost = gpu;
@@ -277,7 +272,7 @@ impl DeviceManager {
     }
 
     pub fn set_standard_effect(&mut self, effect_id: u8, params: Vec<u8>) -> bool {
-        if let Some(mut config) = self.get_config() {
+        if let Some(config) = self.get_config() {
             config.standard_effect = effect_id;
             config.standard_effect_params = params.clone();
             if let Err(e) = config.write_to_file() {
@@ -293,7 +288,7 @@ impl DeviceManager {
 
     pub fn set_fan_rpm(&mut self, ac:usize, rpm: i32) -> bool {
         let mut res: bool = false;
-        if let Some(mut config) = self.get_config() {
+        if let Some(config) = self.get_config() {
             config.power[ac].fan_rpm = rpm;
             if let Err(e) = config.write_to_file() {
                 eprintln!("Error write config {:?}", e);
@@ -314,7 +309,7 @@ impl DeviceManager {
 
     pub fn set_logo_led_state(&mut self, ac:usize, logo_state: u8) -> bool {
         let mut res: bool = false;
-        if let Some(mut config) = self.get_config() {
+        if let Some(config) = self.get_config() {
             config.power[ac].logo_state = logo_state;
             if config.sync == true {
                 let other = (ac + 1) & 0x01;
@@ -355,7 +350,7 @@ impl DeviceManager {
     pub fn set_brightness(&mut self, ac:usize, brightness: u8) -> bool {
         let mut res: bool = false;
         let _val = brightness as u16  * 255 / 100;
-        if let Some(mut config) = self.get_config() {
+        if let Some(config) = self.get_config() {
             config.power[ac].brightness = _val as u8;
             if config.sync == true {
                 let other = (ac + 1) & 0x01;
