@@ -23,6 +23,7 @@ jobs:
         libhidapi-dev
         libhidapi-hidraw0
         pkg-config
+        libudev
     - name: Build
       working-directory: ./razer_control_gui
       run: cargo build --verbose
