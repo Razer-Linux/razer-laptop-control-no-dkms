@@ -5,7 +5,7 @@ mod kbd;
 mod device;
 use crate::kbd::Effect;
 use lazy_static::lazy_static;
-use signal_hook::{iterator::Signals, SIGINT, SIGTERM};
+use signal_hook::{iterator::Signals, consts::SIGINT, consts::SIGTERM};
 // use std::io::prelude::*;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
@@ -176,7 +176,7 @@ fn main() {
     });
 
     // Signal handler - cleanup if we are told to exit
-    let signals = Signals::new(&[SIGINT, SIGTERM]).unwrap();
+    let mut signals = Signals::new(&[SIGINT, SIGTERM]).unwrap();
     let clean_thread = thread::spawn(move || {
         for _ in signals.forever() {
             println!("Received signal, cleaning up");
