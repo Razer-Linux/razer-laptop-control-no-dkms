@@ -21,7 +21,7 @@
           version = "0.2.0";
 
           nativeBuildInputs = with pkgs; [pkg-config];
-          buildInputs = with pkgs; [dbus.dev hidapi];
+          buildInputs = with pkgs; [dbus.dev hidapi systemd];
 
           src = ./razer_control_gui;
 
