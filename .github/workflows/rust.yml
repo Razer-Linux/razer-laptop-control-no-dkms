@@ -24,6 +24,10 @@ jobs:
         libhidapi-hidraw0
         pkg-config
         libudev-dev
+    - name: "Install Rust"
+      uses: dtolnay/rust-toolchain@stable
+    - name: "Cache cargo"
+      uses: Swatinem/rust-cache@v2
     - name: Build
       working-directory: ./razer_control_gui
       run: cargo build --verbose
