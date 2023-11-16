@@ -16,10 +16,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: awalsh128/cache-apt-pkgs-action@latest
-    - name: Install dependency
       with:
-          packages:  libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev
-          version: 1.0
+        packages:  libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev
+        version: 1.0
           
     - name: "Install Rust"
       uses: dtolnay/rust-toolchain@stable
