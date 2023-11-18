@@ -17,12 +17,6 @@ echo "Creating directories, copying files, and setting up services..."
 mkdir -p ~/.local/share/razercontrol
 sudo /bin/bash << EOF
 mkdir -p /usr/share/razercontrol
-systemctl is-active razerdaemon.service
-# Check if DKMS service is active
-if [ $? -eq 0 ]; then
-    echo "DKMS version is installed!!! Please remove and try again!"
-    exit 1
-fi
 cp target/release/razer-cli /usr/bin/
 cp target/release/daemon /usr/share/razercontrol/
 cp data/devices/laptops.json /usr/share/razercontrol/
