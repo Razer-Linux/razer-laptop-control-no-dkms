@@ -223,5 +223,12 @@
         "pid": "029D",
         "features": ["boost", "bho"],
         "fan": [2200, 5000]
+    },
+    {
+        "name": "Blade Early 2021 17 pro",
+        "vid": "1532",
+        "pid": "026E",
+        "features": ["boost"],
+        "fan": [2300, 4300]
     }
 ]
