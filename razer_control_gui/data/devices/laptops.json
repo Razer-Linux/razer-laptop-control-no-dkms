@@ -165,14 +165,14 @@
         "name": "Blade 2021 15 advanced",
         "vid": "1532",
         "pid": "0276",
-        "features": [],
+        "features": ["boost"],
         "fan": [3500, 5000]
     },
     { 
         "name": "Blade late 2021 15 advanced",
         "vid": "1532",
         "pid": "026D",
-        "features": [],
+        "features": ["boost"],
         "fan": [3500, 5000]
     },
     {
