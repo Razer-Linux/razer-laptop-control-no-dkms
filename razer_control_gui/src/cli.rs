@@ -71,9 +71,9 @@ struct PowerParams {
     /// power mode (0, 1, 2 or 4)
     pwr: u8,
     /// cpu boost (0, 1, 2 or 3)
-    cpu_boost: u8,
+    cpu_mode: Option<u8>,
     /// gpu boost (0, 1 or 2)
-    gpu_boost: u8,
+    gpu_mode: Option<u8>,
 }
 
 #[derive(Parser)]
@@ -281,9 +281,9 @@ fn main() {
             WriteAttr::Power(PowerParams {
                 ac_state,
                 pwr,
-                cpu_boost,
-                gpu_boost,
-            }) => write_pwr_mode(ac_state as usize, pwr, cpu_boost, gpu_boost),
+                cpu_mode,
+                gpu_mode,
+            }) => write_pwr_mode(ac_state as usize, pwr, cpu_mode, gpu_mode),
             WriteAttr::Brightness(BrightnessParams {
                 ac_state,
                 brightness,
@@ -604,30 +604,42 @@ fn read_power_mode(ac: usize) {
     }
 }
 
-fn write_pwr_mode(ac: usize, pwr_mode: u8, cpu_boost: u8, gpu_boost: u8) {
+fn write_pwr_mode(ac: usize, pwr_mode: u8, cpu_mode: Option<u8>, gpu_mode: Option<u8>) {
     if pwr_mode > 4 {
         Cli::command()
             .error(ErrorKind::InvalidValue, "Power mode must be 0, 1, 2 or 4")
             .exit()
     }
 
-    if cpu_boost > 3 {
+    let cm = if pwr_mode == 4 {
+        cpu_mode.expect("CPU mode must be provided when power mode is 4")
+    } else {
+        cpu_mode.unwrap_or(0)
+    };
+
+    if cm > 3 {
         Cli::command()
-            .error(ErrorKind::InvalidValue, "CPU boost must be between 0 and 3")
+            .error(ErrorKind::InvalidValue, "CPU mode must be between 0 and 3")
             .exit()
     }
 
-    if gpu_boost > 2 {
+    let gm = if pwr_mode == 4 {
+        gpu_mode.expect("GPU mode must be provided when power mode is 4")
+    } else {
+        gpu_mode.unwrap_or(0)
+    };
+
+    if gm > 2 {
         Cli::command()
-            .error(ErrorKind::InvalidValue, "GPU boost must be between 0 and 2")
+            .error(ErrorKind::InvalidValue, "GPU mode must be between 0 and 2")
             .exit()
     }
 
     match send_data(comms::DaemonCommand::SetPowerMode {
         ac,
         pwr: pwr_mode,
-        cpu: cpu_boost,
-        gpu: gpu_boost,
+        cpu: cm,
+        gpu: gm,
     }) {
         Some(_) => read_power_mode(ac),
         None => {
