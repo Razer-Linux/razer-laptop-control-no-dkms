@@ -186,7 +186,7 @@
         "name": "Blade early 2022 15 advanced",
         "vid": "1532",
         "pid": "028A",
-        "features": [],
+        "features": ["boost"],
         "fan": [3500, 5000]
     },
     {
