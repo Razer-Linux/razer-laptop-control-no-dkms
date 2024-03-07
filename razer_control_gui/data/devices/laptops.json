@@ -235,7 +235,7 @@
        "name": "Blade 2024 14",
        "vid": "1532",
        "pid": "02b6",
-       "features": [],
+       "features": ["boost", "bho"],
        "fan": [2200, 5000]
     }
 ]
