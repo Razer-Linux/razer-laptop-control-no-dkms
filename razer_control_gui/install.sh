@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ -z "$@" ]];then
+    echo "usage: |install|uninstall|"
+    exit -1
+fi
+
 # Build the project
 echo "Building the project..."
 cargo build --release
@@ -12,11 +17,6 @@ fi
 
 echo "Stopping razerdaemon service..."
 systemctl --user stop razerdaemon.service
-
-if [[ -z "$@" ]];then
-    echo "usage: |install|uninstall|"
-    exit -1
-fi
 
 uninstall() {
     sudo /bin/bash <<EOF
