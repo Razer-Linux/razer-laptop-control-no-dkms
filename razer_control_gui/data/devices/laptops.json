@@ -168,7 +168,7 @@
         "features": ["boost"],
         "fan": [3500, 5000]
     },
-    { 
+    {
         "name": "Blade late 2021 15 advanced",
         "vid": "1532",
         "pid": "026D",
@@ -230,5 +230,12 @@
         "pid": "026E",
         "features": ["boost"],
         "fan": [2300, 4300]
+    },
+    {
+       "name": "Blade 2024 14",
+       "vid": "1532",
+       "pid": "02b6",
+       "features": ["boost", "bho"],
+       "fan": [2200, 5000]
     }
 ]
