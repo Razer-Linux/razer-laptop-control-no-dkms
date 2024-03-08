@@ -103,7 +103,7 @@ struct LogoParams {
 #[derive(Parser)]
 struct SyncParams {
     /// sync on/off
-    sync: bool,
+    sync_state: String,
 }
 
 #[derive(Parser)]
@@ -288,7 +288,7 @@ fn main() {
                 ac_state,
                 brightness,
             }) => write_brightness(ac_state as usize, brightness as u8),
-            WriteAttr::Sync(SyncParams { sync }) => write_sync(sync),
+            WriteAttr::Sync(SyncParams { sync_state }) => write_sync(sync_state == "on"),
             WriteAttr::Logo(LogoParams {
                 ac_state,
                 logo_state,
