@@ -99,10 +99,10 @@ fn main() {
                     }
                 }
                 else if *online == 0 {
-                if let Ok(mut d) = DEV_MANAGER.lock() {
-                    d.restore_light();
+                    if let Ok(mut d) = DEV_MANAGER.lock() {
+                        d.restore_light();
+                    }
                 }
-            }
 
             } 
             true
