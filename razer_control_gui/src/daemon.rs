@@ -17,6 +17,7 @@ use std::{thread, time};
 mod battery;
 mod dbus_mutter_displayconfig;
 mod dbus_mutter_idlemonitor;
+mod screensaver;
 mod login1;
 
 lazy_static! {
@@ -120,6 +121,18 @@ fn main() {
             }
             true
         });
+        let proxy = dbus_session.with_proxy("org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", time::Duration::from_millis(5000));
+        let _id = proxy.match_signal(|h: screensaver::OrgFreedesktopScreenSaverActiveChanged, _: &Connection, _: &Message| {
+            println!("ActiveChanged {:?}", h.arg0);
+            if let Ok(mut d) = DEV_MANAGER.lock() {
+                if h.arg0 == true {
+                    d.light_off();
+                } else {
+                    d.restore_light();
+                }
+            }
+            true
+        });
 
         loop { 
             if let Ok(res) = dbus_session.process(time::Duration::from_millis(1000)) {
@@ -169,6 +182,11 @@ fn main() {
             println!("PrepareForSleep {:?}", h.start);
             if let Ok(mut d) = DEV_MANAGER.lock() {
                 d.set_ac_state_get();
+                if h.start == true {
+                    d.light_off();
+                } else {
+                    d.restore_light();
+                }
             }
             true
         });
