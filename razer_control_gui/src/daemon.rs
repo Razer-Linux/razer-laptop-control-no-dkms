@@ -4,6 +4,7 @@ mod config;
 mod kbd;
 mod device;
 use crate::kbd::Effect;
+// use bincode::Options;
 use lazy_static::lazy_static;
 use signal_hook::{iterator::Signals, consts::SIGINT, consts::SIGTERM};
 // use std::io::prelude::*;
