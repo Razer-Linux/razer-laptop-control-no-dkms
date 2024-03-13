@@ -13,3 +13,4 @@ On all razer notebooks, the following is supported:
 * RGB keyboard control (Experimental)
 * Fan control
 * Power control
+* Battery optimizer
