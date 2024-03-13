@@ -6,8 +6,10 @@
 
 ## Installing
 1. Install cargo or rustc
-2. run install.sh as a normal user
-3. Enjoy!
+2. add `libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev` packages (or equivelent)
+3. run `./install.sh install` as a normal user
+4. reboot
+5. Enjoy!
 
 ## Usage of CLI Application
 ```
