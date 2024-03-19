@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$EUID" -eq 0 ]
+  then echo "Please do not run as root"
+  exit
+fi
+
 if [[ -z "$@" ]];then
     echo "usage: |install|uninstall|"
     exit -1
