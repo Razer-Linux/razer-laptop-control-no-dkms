@@ -1,85 +1,135 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ "$EUID" -eq 0 ]
-  then echo "Please do not run as root"
-  exit
-fi
+detect_init_system() {
+    if pidof systemd 1>/dev/null 2>/dev/null; then
+        INIT_SYSTEM="systemd"
+    elif [ -f "/sbin/rc-update" ]; then
+        INIT_SYSTEM="openrc"
+    else
+        INIT_SYSTEM="other"
+    fi
+}
 
-if [[ -z "$@" ]];then
-    echo "usage: |install|uninstall|"
-    exit -1
-fi
+install() {
+    echo "Building the project..."
+    cargo build --release
 
-# Build the project
-echo "Building the project..."
-cargo build --release
+    if [ $? -ne 0 ]; then
+        echo "An error occurred while building the project"
+        exit 1
+    fi
 
-# Check if the build was successful
-if [ $? -ne 0 ]; then
-    echo "Build failed, exiting."
-    exit 1
-fi
+    # Stop the service if it's running
+    echo "Stopping the service..."
+    case $INIT_SYSTEM in
+    systemd)
+        systemctl --user stop razercontrol
+        ;;
+    openrc)
+        sudo rc-service razercontrol stop
+        ;;
+    esac
 
-echo "Stopping razerdaemon service..."
-systemctl --user stop razerdaemon.service
+    # Install the files
+    echo "Installing the files..."
+    mkdir -p ~/.local/share/razercontrol
+    sudo bash <<EOF
+        mkdir -p /usr/share/razercontrol
+        cp target/release/razer-cli /usr/bin/
+        cp target/release/daemon /usr/share/razercontrol/
+        cp data/devices/laptops.json /usr/share/razercontrol/
+        cp data/udev/99-hidraw-permissions.rules /etc/udev/rules.d/
+        udevadm control --reload-rules
+EOF
+
+    if [ $? -ne 0 ]; then
+        echo "An error occurred while installing the files"
+        exit 1
+    fi
+
+    # Start the service
+    echo "Starting the service..."
+    case $INIT_SYSTEM in
+    systemd)
+        sudo cp data/services/systemd/razercontrol.service /etc/systemd/system/
+        systemctl --user enable --now razercontrol
+        ;;
+    openrc)
+        sudo bash <<EOF
+            cp data/services/openrc/razercontrol /etc/init.d/
+            # HACK: Change the username in the script
+            sed -i 's/USERNAME_CHANGEME/$USER/' /etc/init.d/razercontrol
+
+            chmod +x /etc/init.d/razercontrol
+            rc-update add razercontrol default
+            rc-service razercontrol start
+EOF
+        ;;
+    esac
+
+    echo "Installation complete"
+}
 
 uninstall() {
-    sudo /bin/bash <<EOF
-rm -rf /usr/share/razercontrol
-rm -f /usr/bin/razer-cli
-rm -f /etc/udev/rules.d/99-hidraw-permissions.rules
-rm -f /usr/lib/systemd/user/razerdaemon.service
-udevadm control --reload-rules
+    # Remove the files
+    echo "Uninstalling the files..."
+    sudo bash <<EOF
+        rm -f /usr/bin/razer-cli
+        rm -f /usr/share/razercontrol/daemon
+        rm -f /usr/share/razercontrol/laptops.json
+        rm -f /etc/udev/rules.d/99-hidraw-permissions.rules
+        udevadm control --reload-rules
 EOF
 
-}
-install() {
-    echo "Creating directories, copying files, and setting up services..."
-    mkdir -p ~/.local/share/razercontrol
-    sudo /bin/bash <<EOF
-mkdir -p /usr/share/razercontrol
-cp target/release/razer-cli /usr/bin/
-cp target/release/daemon /usr/share/razercontrol/
-cp data/devices/laptops.json /usr/share/razercontrol/
-cp data/udev/99-hidraw-permissions.rules /etc/udev/rules.d/
-cp razerdaemon.service /usr/lib/systemd/user/
-udevadm control --reload-rules
-EOF
-
-    # Check if the previous commands were successful
     if [ $? -ne 0 ]; then
-        echo "An error occurred while setting up, exiting."
+        echo "An error occurred while uninstalling the files"
         exit 1
     fi
 
-    echo "Enabling razerdaemon service..."
-    systemctl --user enable razerdaemon.service
+    # Stop the service
+    echo "Stopping the service..."
+    case $INIT_SYSTEM in
+    systemd)
+        systemctl --user disable --now razercontrol
+        rm -f /etc/systemd/system/razercontrol.service
+        ;;
+    openrc)
+        sudo bash <<EOF
+            rc-service razercontrol stop
+            rc-update del razercontrol default
+            rm -f /etc/init.d/razercontrol
+EOF
+        ;;
+    esac
 
-    echo "Starting razerdaemon service..."
-    systemctl --user start razerdaemon.service
+    echo "Uninstalled"
+}
 
-    # Check if the service started successfully
-    if [ $? -ne 0 ]; then
-        echo "Failed to start razerdaemon service, exiting."
+main() {
+    if [ "$EUID" -eq 0 ]; then
+        echo "Please do not run as root"
         exit 1
     fi
 
-    echo "Install complete!"
+    detect_init_system
 
-    return $?
-}
+    if [ "$INIT_SYSTEM" = "other" ]; then
+        echo "Unsupported init system"
+        exit 1
+    fi
 
-case "$@" in
-    "install")
+    case $1 in
+    install)
         install
         ;;
-    "uninstall")
+    uninstall)
         uninstall
         ;;
     *)
-        echo "unknown arg $@"
-        exit -1
+        echo "Usage: $0 {install|uninstall}"
+        exit 1
         ;;
-esac
+    esac
+}
 
-exit $?
+main $@
