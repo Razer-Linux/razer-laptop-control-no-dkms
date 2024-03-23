@@ -7,3 +7,4 @@ ExecStart=/usr/share/razercontrol/daemon
 
 [Install]
 WantedBy=default.target
+

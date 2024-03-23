@@ -1,0 +1,26 @@
+#!/sbin/openrc-run
+
+name="razerdaemon"
+command="/usr/share/razercontrol/daemon"
+pidfile="${XDG_RUNTIME_DIR}/${RC_SVCNAME}.pid"
+output="/var/log/razercontrol.log"
+
+depend() {
+    need localmount udev
+}
+
+start() {
+    # prepare the log file
+    touch "$output"
+    chown USERNAME_CHANGEME "$output"
+
+    ebegin "Starting ${RC_SVCNAME}"
+    start-stop-daemon --start --user USERNAME_CHANGEME --background --make-pidfile --pidfile "$pidfile" --exec "$command" --stdout "$output" --stderr "$output"
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping ${RC_SVCNAME}"
+    start-stop-daemon --stop --pidfile "$pidfile"
+    eend $?
+}
