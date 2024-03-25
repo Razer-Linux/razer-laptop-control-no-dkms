@@ -237,5 +237,12 @@
        "pid": "02b6",
        "features": ["boost", "bho"],
        "fan": [2200, 5000]
+    },
+    {
+        "name": "Blade Mid 2021 17 pro",
+        "vid": "1532",
+        "pid": "0279",
+        "features": ["boost"],
+        "fan": [2300, 4300]
     }
 ]
