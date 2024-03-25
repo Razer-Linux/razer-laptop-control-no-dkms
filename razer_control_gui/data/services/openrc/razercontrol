@@ -6,7 +6,7 @@ pidfile="${XDG_RUNTIME_DIR}/${RC_SVCNAME}.pid"
 output="/var/log/razercontrol.log"
 
 depend() {
-    need localmount udev
+    need localmount udev dbus
 }
 
 start() {
