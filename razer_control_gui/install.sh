@@ -51,7 +51,7 @@ EOF
     echo "Starting the service..."
     case $INIT_SYSTEM in
     systemd)
-        sudo cp data/services/systemd/razercontrol.service /etc/systemd/system/
+        sudo cp data/services/systemd/razercontrol.service /etc/systemd/user/
         systemctl --user enable --now razercontrol
         ;;
     openrc)
@@ -91,7 +91,7 @@ EOF
     case $INIT_SYSTEM in
     systemd)
         systemctl --user disable --now razercontrol
-        rm -f /etc/systemd/system/razercontrol.service
+        rm -f /etc/systemd/user/razercontrol.service
         ;;
     openrc)
         sudo bash <<EOF
