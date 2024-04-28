@@ -767,11 +767,8 @@ impl RazerLaptop {
         return false;
     }
 
-    pub fn set_power_mode(&mut self, mut mode: u8, cpu_boost: u8, gpu_boost: u8) -> bool {
-        if mode <= 2 {
-            if mode == 2 && self.have_feature("creator_mode".to_string()) == false {
-                mode = 1;
-            }
+    pub fn set_power_mode(&mut self, mode: u8, cpu_boost: u8, gpu_boost: u8) -> bool {
+        if mode <= 3 {
             self.power = mode;
             self.set_power(0x01);
             self.set_power(0x02);

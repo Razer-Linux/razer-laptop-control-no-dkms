@@ -68,7 +68,7 @@ enum WriteAttr {
 struct PowerParams {
     /// battery/plugged in
     ac_state: AcState,
-    /// power mode (0, 1, 2 or 4)
+    /// power mode (0, 1, 2, 3 or 4)
     pwr: u8,
     /// cpu boost (0, 1, 2 or 3)
     cpu_mode: Option<u8>,
@@ -569,6 +569,7 @@ fn read_power_mode(ac: usize) {
                 0 => "Balanced",
                 1 => "Gaming",
                 2 => "Creator",
+                3 => "Silent",
                 4 => "Custom",
                 _ => "Unknown",
             };
@@ -607,7 +608,7 @@ fn read_power_mode(ac: usize) {
 fn write_pwr_mode(ac: usize, pwr_mode: u8, cpu_mode: Option<u8>, gpu_mode: Option<u8>) {
     if pwr_mode > 4 {
         Cli::command()
-            .error(ErrorKind::InvalidValue, "Power mode must be 0, 1, 2 or 4")
+            .error(ErrorKind::InvalidValue, "Power mode must be 0, 1, 2, 3 or 4")
             .exit()
     }
 
