@@ -261,7 +261,8 @@ impl DeviceManager {
         }
         if let Some(laptop) = self.get_device() {
             let state = laptop.get_ac_state();
-            if state != ac {
+            if state != ac && pwr != 0 && pwr != 3 {
+                eprintln!("Unsupported mode");
                 res = true;
             } else {
                 res = laptop.set_power_mode(pwr, cpu, gpu);
@@ -411,13 +412,7 @@ impl DeviceManager {
 
     pub fn get_power_mode(&mut self, ac:usize) -> u8 {
         if let Some(laptop) = self.get_device() {
-            if laptop.ac_state as usize == ac {
-                return laptop.get_power_mode(0x01);
-            }
-        }
-
-        if let Some(config) = self.get_ac_config(ac) {
-            return config.power_mode;
+            return laptop.get_power_mode(0x01);
         }
 
         return 0;
