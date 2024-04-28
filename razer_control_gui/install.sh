@@ -91,7 +91,9 @@ EOF
     case $INIT_SYSTEM in
     systemd)
         systemctl --user disable --now razercontrol
+    sudo bash <<EOF
         rm -f /etc/systemd/user/razercontrol.service
+EOF
         ;;
     openrc)
         sudo bash <<EOF
