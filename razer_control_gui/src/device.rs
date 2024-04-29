@@ -409,7 +409,7 @@ impl DeviceManager {
         return 0;
     }
 
-    pub fn get_power_mode(&mut self, _ac:usize) -> u8 {
+    pub fn get_power_mode(&mut self, ac:usize) -> u8 {
         if let Some(laptop) = self.get_device() {
             if laptop.ac_state as usize == ac {
                 return laptop.get_power_mode(0x01);
