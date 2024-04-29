@@ -85,7 +85,11 @@ pub fn send_to_daemon(command: DaemonCommand, mut sock: UnixStream) -> Option<Da
         if sock.write_all(&encoded).is_ok() {
             let mut buf = [0 as u8; 4096];
             return match sock.read(&mut buf) {
-                Ok(_) => read_from_socked_resp(&buf),
+                Ok(readed) if readed > 0 => read_from_socked_resp(&buf[0..readed]),
+                Ok(_) => {
+                    eprintln!("No response from daemon");
+                    None
+                }
                 Err(_) => {
                     eprintln!("Read failed!");
                     None
