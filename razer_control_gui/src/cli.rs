@@ -32,6 +32,18 @@ enum Args {
     },
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum OnOff {
+    On,
+    Off,
+}
+
+impl OnOff {
+    pub fn is_on(&self) -> bool {
+        matches!(self, Self::On)
+    }
+}
+
 #[derive(Subcommand)]
 enum ReadAttr {
     /// Read the current fan speed
@@ -108,8 +120,7 @@ struct SyncParams {
 
 #[derive(Parser)]
 struct BhoParams {
-    /// on/off
-    state: String,
+    state: OnOff,
     /// charging threshold
     threshold: Option<u8>,
 }
@@ -372,7 +383,7 @@ fn main() {
     }
 }
 
-fn validate_and_write_bho(threshold: Option<u8>, state: String) {
+fn validate_and_write_bho(threshold: Option<u8>, state: OnOff) {
     match threshold {
         Some(threshold) => {
             if !valid_bho_threshold(threshold) {
@@ -383,10 +394,10 @@ fn validate_and_write_bho(threshold: Option<u8>, state: String) {
                     )
                     .exit()
             }
-            write_bho(state == "on", threshold)
+            write_bho(state.is_on(), threshold)
         }
         None => {
-            if state == "on" {
+            if state.is_on() {
                 Cli::command()
                     .error(
                         ErrorKind::MissingRequiredArgument,
@@ -394,7 +405,7 @@ fn validate_and_write_bho(threshold: Option<u8>, state: String) {
                     )
                     .exit()
             }
-            write_bho(state == "on", 80)
+            write_bho(state.is_on(), 80)
         }
     }
 }
