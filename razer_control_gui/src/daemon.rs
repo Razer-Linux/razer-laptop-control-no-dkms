@@ -38,6 +38,13 @@ lazy_static! {
 
 // Main function for daemon
 fn main() {
+    std::panic::set_hook(Box::new(|_info| {
+        println!("Something went wrong! Removing the socket path");
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+    }));
+
     if let Ok(mut d) = DEV_MANAGER.lock() {
         d.discover_devices();
         if let Some(laptop) = d.get_device() {
