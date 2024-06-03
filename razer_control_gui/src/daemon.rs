@@ -38,6 +38,13 @@ lazy_static! {
 
 // Main function for daemon
 fn main() {
+    std::panic::set_hook(Box::new(|_info| {
+        println!("Something went wrong! Removing the socket path");
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+    }));
+
     if let Ok(mut d) = DEV_MANAGER.lock() {
         d.discover_devices();
         if let Some(laptop) = d.get_device() {
@@ -234,7 +241,11 @@ fn handle_data(mut stream: UnixStream) {
     if let Some(cmd) = comms::read_from_socket_req(&buffer) {
         if let Some(s) = process_client_request(cmd) {
             if let Ok(x) = bincode::serialize(&s) {
-                stream.write_all(&x).unwrap();
+                let result = stream.write_all(&x);
+
+                if let Err(error) = result {
+                    println!("Client disconnected with error: {error}");
+                }
             }
         }
     }
