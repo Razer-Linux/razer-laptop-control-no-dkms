@@ -16,8 +16,8 @@ name = "daemon"
 path = "src/daemon.rs"
 
 [[bin]]
-name = "app"
-path = "src/app/app.rs"
+name = "razer-settings"
+path = "src/razer-settings/razer-settings.rs"
 
 [dependencies]
 dbus = "0.9.7"
