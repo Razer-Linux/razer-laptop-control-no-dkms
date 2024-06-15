@@ -1,7 +1,8 @@
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use gtk::{
-    Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar
+    Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar,
+    ComboBoxText
 };
 use gtk::{glib, glib::clone};
         
@@ -58,8 +59,9 @@ fn set_bho(is_on: bool, threshold: u8) -> Option<bool> {
     }
 }
 
-fn get_logo() -> Option<u8> {
-    let response = send_data(comms::DaemonCommand::GetLogoLedState{ ac: 1 })?;
+fn get_logo(ac: bool) -> Option<u8> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::GetLogoLedState{ ac })?;
 
     use comms::DaemonResponse::*;
     match response {
@@ -74,8 +76,9 @@ fn get_logo() -> Option<u8> {
     }
 }
 
-fn set_logo(value: u8) -> Option<bool> {
-    let response = send_data(comms::DaemonCommand::SetLogoLedState{ ac: 1, logo_state: value })?;
+fn set_logo(ac: bool, logo_state: u8) -> Option<bool> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::SetLogoLedState{ ac , logo_state })?;
 
     use comms::DaemonResponse::*;
     match response {
@@ -154,7 +157,7 @@ fn main() {
             .build();
         
         let bho = get_bho().unwrap();
-        let logo = get_logo().unwrap();
+        let logo = get_logo(true).unwrap();
         let fan_speed = get_fan_speed(1).unwrap();
 
         let settings_page = SettingsPage::new();
@@ -162,15 +165,18 @@ fn main() {
         // Logo section
         let settings_section = settings_page.add_section(Some("Logo"));
             let label = Label::new(Some("Turn on logo"));
-            let switch = Switch::new();
-            switch.set_state(logo == 1);
-            switch.connect_changed_active(|switch| {
-                let on = switch.is_active();
-                set_logo(if on { 1 } else { 0 });
-                let logo = get_logo().unwrap_or(0);
-                switch.set_active(logo == 1);
+            let logo_options = ComboBoxText::new();
+                logo_options.append_text("Off");
+                logo_options.append_text("On");
+                logo_options.append_text("Breathing");
+                logo_options.set_active(Some(logo as u32));
+            logo_options.connect_changed(|options| {
+                let logo = options.active().unwrap() as u8; // Unwrap: There is always one active
+                set_logo(true, logo);
+                let logo = get_logo(true).unwrap().clamp(0, 2);
+                options.set_active(Some(logo as u32));
             });
-        let row = SettingsRow::new(&label, &switch);
+        let row = SettingsRow::new(&label, &logo_options);
         settings_section.add_row(&row.master_container);
 
         // Battery Health Optimizer section
