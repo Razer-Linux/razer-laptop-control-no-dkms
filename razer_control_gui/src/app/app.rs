@@ -3,6 +3,7 @@ use gtk::{Application, ApplicationWindow};
 use gtk::{
     Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar
 };
+use gtk::{glib, glib::clone};
         
 // sudo apt install libgdk-pixbuf2.0-dev libcairo-dev libatk1.0-dev
 // sudo apt install libpango1.0-dev
@@ -23,7 +24,7 @@ fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
     }
 }
 
-fn read_bho() -> Option<(bool, u8)> {
+fn get_bho() -> Option<(bool, u8)> {
     let response = send_data(comms::DaemonCommand::GetBatteryHealthOptimizer())?;
 
     use comms::DaemonResponse::*;
@@ -34,6 +35,24 @@ fn read_bho() -> Option<(bool, u8)> {
         response => {
             // This should not happen
             println!("Instead of GetBatteryHealthOptimizer got {response:?}");
+            None
+        }
+    }
+}
+
+fn set_bho(is_on: bool, threshold: u8) -> Option<bool> {
+    let response = send_data(comms::DaemonCommand::SetBatteryHealthOptimizer {
+        is_on, threshold
+    })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        SetBatteryHealthOptimizer { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of SetBatteryHealthOptimizer got {response:?}");
             None
         }
     }
@@ -87,6 +106,38 @@ fn get_power() -> Option<u8> {
     }
 }
 
+fn get_fan_speed(ac: usize) -> Option<i32> {
+    let response = send_data(comms::DaemonCommand::GetFanSpeed{ ac: 1 })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        GetFanSpeed { rpm } => {
+            Some(rpm)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of GetFanSpeed got {response:?}");
+            None
+        }
+    }
+}
+
+fn set_fan_speed(value: i32) -> Option<bool> {
+    let response = send_data(comms::DaemonCommand::SetFanSpeed{ ac: 1, rpm: value })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        SetFanSpeed { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of SetFanSpeed got {response:?}");
+            None
+        }
+    }
+}
+
 fn main() {
     gtk::init().expect("Failed to initialize GTK.");
 
@@ -102,8 +153,9 @@ fn main() {
             .title("Razer Settings")
             .build();
         
-        let bho = read_bho().unwrap();
+        let bho = get_bho().unwrap();
         let logo = get_logo().unwrap();
+        let fan_speed = get_fan_speed(1).unwrap();
 
         let settings_page = SettingsPage::new();
 
@@ -132,6 +184,67 @@ fn main() {
             let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
             scale.set_value(bho.1 as f64);
             scale.set_width_request(100);
+            scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+                let is_on = switch.is_active();
+                let threshold = scale.value() as u8;
+
+                set_bho(is_on, threshold).unwrap();
+
+                let (is_on, threshold) = get_bho().unwrap();
+                
+                scale.set_value(threshold as f64);
+                scale.set_visible(is_on);
+                switch.set_sensitive(is_on);
+
+                return gtk::glib::Propagation::Stop;
+            }));
+            scale.set_sensitive(bho.0);
+            switch.connect_changed_active(clone!(@weak scale => move |switch| {
+                let is_on = switch.is_active();
+                let threshold = scale.value() as u8;
+                
+                set_bho(is_on, threshold); // Ignoramos errores ya que leemos
+                                           // el resultado de vuelta
+
+                let (is_on, threshold) = get_bho().unwrap();
+                
+                scale.set_value(threshold as f64);
+                scale.set_visible(is_on);
+                switch.set_sensitive(is_on);
+            }));
+        let row = SettingsRow::new(&label, &scale);
+        settings_section.add_row(&row.master_container);
+
+        // Fan Speed Section
+        let settings_section = settings_page.add_section(Some("Fan Speed"));
+            let label = Label::new(Some("Auto"));
+            let switch = Switch::new();
+            let auto = fan_speed == 0;
+            switch.set_state(auto);
+        let row = SettingsRow::new(&label, &switch);
+        settings_section.add_row(&row.master_container);
+            let label = Label::new(Some("Fan Speed"));
+            let scale = Scale::with_range(gtk::Orientation::Horizontal, 3500f64, 5000f64, 1f64);
+            scale.set_value(fan_speed as f64);
+            scale.set_sensitive(fan_speed != 0);
+            scale.set_width_request(100);
+            scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+                set_fan_speed(value as i32).unwrap();
+                let fan_speed = get_fan_speed(1).unwrap();
+                let auto = fan_speed == 0;
+                scale.set_value(fan_speed as f64);
+                scale.set_sensitive(!auto);
+                switch.set_state(auto);
+                return gtk::glib::Propagation::Stop;
+            }));
+            switch.connect_changed_active(clone!(@weak scale => move |switch| {
+                set_fan_speed(if switch.is_active() { 0 } else { 3500 }).unwrap();
+                let fan_speed = get_fan_speed(1).unwrap();
+                let auto = fan_speed == 0;
+                scale.set_value(fan_speed as f64);
+                scale.set_sensitive(!auto);
+                switch.set_state(auto);
+            }));
         let row = SettingsRow::new(&label, &scale);
         settings_section.add_row(&row.master_container);
 
