@@ -38,11 +38,13 @@ lazy_static! {
 
 // Main function for daemon
 fn main() {
-    std::panic::set_hook(Box::new(|_info| {
+    let default_panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
         println!("Something went wrong! Removing the socket path");
         if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
             std::fs::remove_file(comms::SOCKET_PATH).unwrap();
         }
+        default_panic_hook(info);
     }));
 
     if let Ok(mut d) = DEV_MANAGER.lock() {
