@@ -12,7 +12,7 @@ detect_init_system() {
 
 install() {
     echo "Building the project..."
-    cargo build --release
+    cargo build --release # TODO: The GUI should be optional. At least for now. Before releasing this, it sould be turned into a feature with an explicit cli switch to install it
 
     if [ $? -ne 0 ]; then
         echo "An error occurred while building the project"
@@ -36,6 +36,7 @@ install() {
     sudo bash <<EOF
         mkdir -p /usr/share/razercontrol
         cp target/release/razer-cli /usr/bin/
+        cp target/release/razer-settings /usr/bin/
         cp target/release/daemon /usr/share/razercontrol/
         cp data/devices/laptops.json /usr/share/razercontrol/
         cp data/udev/99-hidraw-permissions.rules /etc/udev/rules.d/
@@ -75,6 +76,7 @@ uninstall() {
     echo "Uninstalling the files..."
     sudo bash <<EOF
         rm -f /usr/bin/razer-cli
+        rm -f /usr/bin/razer-settings
         rm -f /usr/share/razercontrol/daemon
         rm -f /usr/share/razercontrol/laptops.json
         rm -f /etc/udev/rules.d/99-hidraw-permissions.rules
