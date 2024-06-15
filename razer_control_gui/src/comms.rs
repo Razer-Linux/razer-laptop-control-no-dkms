@@ -62,7 +62,8 @@ pub fn bind() -> Option<UnixStream> {
 }
 
 #[allow(dead_code)]
-pub fn bind2() -> std::io::Result<UnixStream> {
+/// We use this from the app, but it should replace bind
+pub fn try_bind() -> std::io::Result<UnixStream> {
     UnixStream::connect(SOCKET_PATH)
 }
 

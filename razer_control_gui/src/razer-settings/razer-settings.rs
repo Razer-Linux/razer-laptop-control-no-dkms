@@ -15,7 +15,7 @@ mod widgets;
 use widgets::*;
 
 fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
-    match comms::bind2() {
+    match comms::try_bind() {
         Ok(socket) => comms::send_to_daemon(opt, socket),
         Err(error) => {
             println!("Error opening socket: {error}");
