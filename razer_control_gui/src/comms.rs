@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 
 /// Razer laptop control socket path
-pub const SOCKET_PATH: &'static str = "/tmp/razercontrol-socket";
+pub const SOCKET_PATH: &str = "/tmp/razercontrol-socket";
 
 #[derive(Serialize, Deserialize, Debug)]
 /// Represents data sent TO the daemon
