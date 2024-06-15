@@ -37,6 +37,7 @@ install() {
         mkdir -p /usr/share/razercontrol
         cp target/release/razer-cli /usr/bin/
         cp target/release/razer-settings /usr/bin/
+        cp data/gui/razer-settings.desktop /usr/share/applications/
         cp target/release/daemon /usr/share/razercontrol/
         cp data/devices/laptops.json /usr/share/razercontrol/
         cp data/udev/99-hidraw-permissions.rules /etc/udev/rules.d/
@@ -77,6 +78,7 @@ uninstall() {
     sudo bash <<EOF
         rm -f /usr/bin/razer-cli
         rm -f /usr/bin/razer-settings
+        rm -f /usr/share/applications/razer-settings.desktop
         rm -f /usr/share/razercontrol/daemon
         rm -f /usr/share/razercontrol/laptops.json
         rm -f /etc/udev/rules.d/99-hidraw-permissions.rules

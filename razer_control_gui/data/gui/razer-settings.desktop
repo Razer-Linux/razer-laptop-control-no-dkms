@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Razer Settings
+Comment=Text to display as tooltip
+Exec=/usr/bin/razer-settings
+Terminal=false
