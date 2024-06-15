@@ -54,25 +54,29 @@ impl Configuration {
 
     pub fn write_to_file(&mut self) -> io::Result<()> {
         let j: String = serde_json::to_string_pretty(&self)?;
-        File::create(env::var("HOME").unwrap() + SETTINGS_FILE)?.write_all(j.as_bytes())?;
+        File::create(get_home_directory() + SETTINGS_FILE)?.write_all(j.as_bytes())?;
         Ok(())
     }
 
     pub fn read_from_config() -> io::Result<Configuration> {
-        let str = fs::read_to_string(env::var("HOME").unwrap() + SETTINGS_FILE)?;
+        let str = fs::read_to_string(get_home_directory() + SETTINGS_FILE)?;
         let res: Configuration = serde_json::from_str(str.as_str())?;
         Ok(res)
     }
 
     pub fn write_effects_save(json: serde_json::Value) -> io::Result<()> {
         let j: String = serde_json::to_string_pretty(&json)?;
-        File::create(env::var("HOME").unwrap() + EFFECTS_FILE)?.write_all(j.as_bytes())?;
+        File::create(get_home_directory() + EFFECTS_FILE)?.write_all(j.as_bytes())?;
         Ok(())
     }
 
     pub fn read_effects_file() -> io::Result<serde_json::Value> {
-        let str = fs::read_to_string(env::var("HOME").unwrap() + EFFECTS_FILE)?;
+        let str = fs::read_to_string(get_home_directory() + EFFECTS_FILE)?;
         let res: serde_json::Value = serde_json::from_str(str.as_str())?;
         Ok(res)
     }
+}
+
+fn get_home_directory() -> String {
+    env::var("HOME").expect("The \"HOME\" environment variable must be set to a valid directory")
 }
