@@ -38,14 +38,7 @@ lazy_static! {
 
 // Main function for daemon
 fn main() {
-    let default_panic_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        println!("Something went wrong! Removing the socket path");
-        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
-            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
-        }
-        default_panic_hook(info);
-    }));
+    setup_panic_hook();
 
     if let Ok(mut d) = DEV_MANAGER.lock() {
         d.discover_devices();
@@ -232,6 +225,18 @@ fn main() {
         std::process::exit(1);
     }
     clean_thread.join().unwrap();
+}
+
+/// Installs a custom panic hook to perform cleanup when the daemon crashes
+fn setup_panic_hook() {
+    let default_panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        println!("Something went wrong! Removing the socket path");
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+        default_panic_hook(info);
+    }));
 }
 
 fn handle_data(mut stream: UnixStream) {
