@@ -2,7 +2,7 @@ use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use gtk::{
     Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar,
-    ComboBoxText
+    ComboBoxText, ColorButton
 };
 use gtk::{glib, glib::clone};
         
@@ -90,6 +90,24 @@ fn set_logo(ac: bool, logo_state: u8) -> Option<bool> {
         response => {
             // This should not happen
             println!("Instead of SetLogoLedState got {response:?}");
+            None
+        }
+    }
+}
+
+fn set_effect(red: u8, green: u8, blue: u8) -> Option<bool> {
+    let response = send_data(comms::DaemonCommand::SetEffect {
+        name: "static".into(), params: vec![red, green, blue]
+    })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        SetEffect { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of SetEffect got {response:?}");
             None
         }
     }
@@ -255,6 +273,22 @@ fn main() {
                 switch.set_state(auto);
             }));
         let row = SettingsRow::new(&label, &scale);
+        settings_section.add_row(&row.master_container);
+
+        // Keyboard Section
+        let settings_section = settings_page.add_section(Some("Keyboard"));
+            let label = Label::new(Some("Color (only set)"));
+            let color_picker = ColorButton::new();
+            color_picker.connect_color_set(|button| {
+                let color = button.color();
+                let red   = (color.red   / 256) as u8;
+                let green = (color.green / 256) as u8;
+                let blue  = (color.blue  / 256) as u8;
+
+                println!("Color: {}, {}, {}", red, green, blue);
+                set_effect(red, green, blue).or_crash("Failed to set color");
+            });
+        let row = SettingsRow::new(&label, &color_picker);
         settings_section.add_row(&row.master_container);
 
         let stack = Stack::new();
