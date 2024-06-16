@@ -11,8 +11,10 @@ use gtk::{glib, glib::clone};
 
 #[path = "../comms.rs"]
 mod comms;
+mod error_handling;
 mod widgets;
 
+use error_handling::*;
 use widgets::*;
 
 fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
@@ -142,7 +144,8 @@ fn set_fan_speed(value: i32) -> Option<bool> {
 }
 
 fn main() {
-    gtk::init().expect("Failed to initialize GTK.");
+    setup_panic_hook();
+    gtk::init().or_crash("Failed to initialize GTK.");
 
     let app = Application::builder()
         .application_id("com.example.hello")
@@ -156,9 +159,9 @@ fn main() {
             .title("Razer Settings")
             .build();
         
-        let bho = get_bho().unwrap();
-        let logo = get_logo(true).unwrap();
-        let fan_speed = get_fan_speed(1).unwrap();
+        let bho = get_bho().or_crash("Error reading bho");
+        let logo = get_logo(true).or_crash("Error reading logo");
+        let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
 
         let settings_page = SettingsPage::new();
 
@@ -171,9 +174,9 @@ fn main() {
                 logo_options.append_text("Breathing");
                 logo_options.set_active(Some(logo as u32));
             logo_options.connect_changed(|options| {
-                let logo = options.active().unwrap() as u8; // Unwrap: There is always one active
+                let logo = options.active().or_crash("Illegal state") as u8; // Unwrap: There is always one active
                 set_logo(true, logo);
-                let logo = get_logo(true).unwrap().clamp(0, 2);
+                let logo = get_logo(true).or_crash("Error reading logo").clamp(0, 2);
                 options.set_active(Some(logo as u32));
             });
         let row = SettingsRow::new(&label, &logo_options);
@@ -194,9 +197,9 @@ fn main() {
                 let is_on = switch.is_active();
                 let threshold = scale.value() as u8;
 
-                set_bho(is_on, threshold).unwrap();
+                set_bho(is_on, threshold).or_crash("Error setting bho");
 
-                let (is_on, threshold) = get_bho().unwrap();
+                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
                 
                 scale.set_value(threshold as f64);
                 scale.set_visible(is_on);
@@ -212,7 +215,7 @@ fn main() {
                 set_bho(is_on, threshold); // Ignoramos errores ya que leemos
                                            // el resultado de vuelta
 
-                let (is_on, threshold) = get_bho().unwrap();
+                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
                 
                 scale.set_value(threshold as f64);
                 scale.set_visible(is_on);
@@ -235,8 +238,8 @@ fn main() {
             scale.set_sensitive(fan_speed != 0);
             scale.set_width_request(100);
             scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-                set_fan_speed(value as i32).unwrap();
-                let fan_speed = get_fan_speed(1).unwrap();
+                set_fan_speed(value as i32).or_crash("Error setting fan speed");
+                let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
                 let auto = fan_speed == 0;
                 scale.set_value(fan_speed as f64);
                 scale.set_sensitive(!auto);
@@ -244,8 +247,8 @@ fn main() {
                 return gtk::glib::Propagation::Stop;
             }));
             switch.connect_changed_active(clone!(@weak scale => move |switch| {
-                set_fan_speed(if switch.is_active() { 0 } else { 3500 }).unwrap();
-                let fan_speed = get_fan_speed(1).unwrap();
+                set_fan_speed(if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
+                let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
                 let auto = fan_speed == 0;
                 scale.set_value(fan_speed as f64);
                 scale.set_sensitive(!auto);
