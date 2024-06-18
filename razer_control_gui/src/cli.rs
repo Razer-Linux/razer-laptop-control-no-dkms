@@ -32,6 +32,18 @@ enum Args {
     },
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum OnOff {
+    On,
+    Off,
+}
+
+impl OnOff {
+    pub fn is_on(&self) -> bool {
+        matches!(self, Self::On)
+    }
+}
+
 #[derive(Subcommand)]
 enum ReadAttr {
     /// Read the current fan speed
@@ -102,14 +114,12 @@ struct LogoParams {
 
 #[derive(Parser)]
 struct SyncParams {
-    /// sync on/off
-    sync_state: String,
+    sync_state: OnOff,
 }
 
 #[derive(Parser)]
 struct BhoParams {
-    /// on/off
-    state: String,
+    state: OnOff,
     /// charging threshold
     threshold: Option<u8>,
 }
@@ -288,7 +298,7 @@ fn main() {
                 ac_state,
                 brightness,
             }) => write_brightness(ac_state as usize, brightness as u8),
-            WriteAttr::Sync(SyncParams { sync_state }) => write_sync(sync_state == "on"),
+            WriteAttr::Sync(SyncParams { sync_state }) => write_sync(sync_state.is_on()),
             WriteAttr::Logo(LogoParams {
                 ac_state,
                 logo_state,
@@ -372,7 +382,7 @@ fn main() {
     }
 }
 
-fn validate_and_write_bho(threshold: Option<u8>, state: String) {
+fn validate_and_write_bho(threshold: Option<u8>, state: OnOff) {
     match threshold {
         Some(threshold) => {
             if !valid_bho_threshold(threshold) {
@@ -383,10 +393,10 @@ fn validate_and_write_bho(threshold: Option<u8>, state: String) {
                     )
                     .exit()
             }
-            write_bho(state == "on", threshold)
+            write_bho(state.is_on(), threshold)
         }
         None => {
-            if state == "on" {
+            if state.is_on() {
                 Cli::command()
                     .error(
                         ErrorKind::MissingRequiredArgument,
@@ -394,7 +404,7 @@ fn validate_and_write_bho(threshold: Option<u8>, state: String) {
                     )
                     .exit()
             }
-            write_bho(state == "on", 80)
+            write_bho(state.is_on(), 80)
         }
     }
 }
