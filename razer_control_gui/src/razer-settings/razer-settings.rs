@@ -61,6 +61,40 @@ fn set_bho(is_on: bool, threshold: u8) -> Option<bool> {
     }
 }
 
+fn get_brightness(ac: bool) -> Option<u8> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::GetBrightness{ ac })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        GetBrightness { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of GetBrightness got {response:?}");
+            None
+        }
+    }
+}
+
+fn set_brightness(ac: bool, val: u8) -> Option<bool> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::SetBrightness { ac, val })?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        SetBrightness { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of SetBrightness got {response:?}");
+            None
+        }
+    }
+}
+
 fn get_logo(ac: bool) -> Option<u8> {
     let ac = if ac { 1 } else { 0 };
     let response = send_data(comms::DaemonCommand::GetLogoLedState{ ac })?;
@@ -112,6 +146,25 @@ fn set_effect(red: u8, green: u8, blue: u8) -> Option<bool> {
         }
     }
 }
+
+// fn set_power(ac: bool, logo_state: u8) -> Option<bool> {
+//     let ac = if ac { 1 } else { 0 };
+//     let response = send_data(comms::DaemonCommand::SetPowerMode {
+//         ac, pwr: (), cpu: (), gpu: () }
+//     )?;
+
+//     use comms::DaemonResponse::*;
+//     match response {
+//         SetPowerMode { result } => {
+//             Some(result)
+//         }
+//         response => {
+//             // This should not happen
+//             println!("Instead of SetLogoLedState got {response:?}");
+//             None
+//         }
+//     }
+// }
 
 fn get_power(ac: bool) -> Option<u8> {
     let ac = if ac { 1 } else { 0 };
@@ -233,6 +286,7 @@ fn main() {
 fn make_page(ac: bool) -> SettingsPage {
     let logo = get_logo(ac).or_crash("Error reading logo");
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
+    let brightness = get_brightness(ac).or_crash("Error reading brightness");
 
     let settings_page = SettingsPage::new();
 
@@ -300,6 +354,19 @@ fn make_page(ac: bool) -> SettingsPage {
             set_effect(red, green, blue).or_crash("Failed to set color");
         });
     let row = SettingsRow::new(&label, &color_picker);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Brightness"));
+        let scale = Scale::with_range(gtk::Orientation::Horizontal, 0f64, 100f64, 1f64);
+        scale.set_value(brightness as f64);
+        scale.set_width_request(100);
+        scale.connect_change_value(move |scale, stype, value| {
+            let value = value.clamp(0f64, 100f64);
+            set_brightness(ac, value as u8).or_crash("Error setting brigthness");
+            let brightness = get_brightness(ac).or_crash("Error reading brightness");
+            scale.set_value(brightness as f64);
+            return gtk::glib::Propagation::Stop;
+        });
+    let row = SettingsRow::new(&label, &scale);
     settings_section.add_row(&row.master_container);
 
     settings_page
