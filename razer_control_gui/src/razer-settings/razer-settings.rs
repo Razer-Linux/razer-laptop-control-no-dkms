@@ -165,8 +165,6 @@ fn set_fan_speed(ac: bool, value: i32) -> Option<bool> {
 }
 
 fn main() {
-    let ac = true;
-
     setup_panic_hook();
     gtk::init().or_crash("Failed to initialize GTK.");
 
@@ -181,128 +179,14 @@ fn main() {
             .default_height(480)
             .title("Razer Settings")
             .build();
-        
-        let bho = get_bho().or_crash("Error reading bho");
-        let logo = get_logo(ac).or_crash("Error reading logo");
-        let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
 
-        let settings_page = SettingsPage::new();
-
-        // Logo section
-        let settings_section = settings_page.add_section(Some("Logo"));
-            let label = Label::new(Some("Turn on logo"));
-            let logo_options = ComboBoxText::new();
-                logo_options.append_text("Off");
-                logo_options.append_text("On");
-                logo_options.append_text("Breathing");
-                logo_options.set_active(Some(logo as u32));
-            logo_options.connect_changed(move |options| {
-                let logo = options.active().or_crash("Illegal state") as u8; // Unwrap: There is always one active
-                set_logo(ac, logo);
-                let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
-                options.set_active(Some(logo as u32));
-            });
-        let row = SettingsRow::new(&label, &logo_options);
-        settings_section.add_row(&row.master_container);
-
-        // Battery Health Optimizer section
-        let settings_section = settings_page.add_section(Some("Battery Health Optimizer"));
-            let label = Label::new(Some("Enable Battery Health Optimizer"));
-            let switch = Switch::new();
-            switch.set_state(bho.0);
-        let row = SettingsRow::new(&label, &switch);
-        settings_section.add_row(&row.master_container);
-            let label = Label::new(Some("Theshold"));
-            let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
-            scale.set_value(bho.1 as f64);
-            scale.set_width_request(100);
-            scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-                let is_on = switch.is_active();
-                let threshold = scale.value() as u8;
-
-                set_bho(is_on, threshold).or_crash("Error setting bho");
-
-                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-                
-                scale.set_value(threshold as f64);
-                scale.set_visible(is_on);
-                scale.set_sensitive(is_on);
-
-                return gtk::glib::Propagation::Stop;
-            }));
-            scale.set_sensitive(bho.0);
-            switch.connect_changed_active(clone!(@weak scale => move |switch| {
-                let is_on = switch.is_active();
-                let threshold = scale.value() as u8;
-                
-                set_bho(is_on, threshold); // Ignoramos errores ya que leemos
-                                           // el resultado de vuelta
-
-                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-                
-                scale.set_value(threshold as f64);
-                scale.set_visible(is_on);
-                scale.set_sensitive(is_on);
-            }));
-        let row = SettingsRow::new(&label, &scale);
-        settings_section.add_row(&row.master_container);
-
-        // Fan Speed Section
-        let settings_section = settings_page.add_section(Some("Fan Speed"));
-            let label = Label::new(Some("Auto"));
-            let switch = Switch::new();
-            let auto = fan_speed == 0;
-            switch.set_state(auto);
-        let row = SettingsRow::new(&label, &switch);
-        settings_section.add_row(&row.master_container);
-            let label = Label::new(Some("Fan Speed"));
-            let scale = Scale::with_range(gtk::Orientation::Horizontal, 3500f64, 5000f64, 1f64);
-            scale.set_value(fan_speed as f64);
-            scale.set_sensitive(fan_speed != 0);
-            scale.set_width_request(100);
-            scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-                set_fan_speed(ac, value as i32).or_crash("Error setting fan speed");
-                let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
-                let auto = fan_speed == 0;
-                scale.set_value(fan_speed as f64);
-                scale.set_sensitive(!auto);
-                switch.set_state(auto);
-                return gtk::glib::Propagation::Stop;
-            }));
-            switch.connect_changed_active(clone!(@weak scale => move |switch| {
-                set_fan_speed(ac, if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
-                let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
-                let auto = fan_speed == 0;
-                scale.set_value(fan_speed as f64);
-                scale.set_sensitive(!auto);
-                switch.set_state(auto);
-            }));
-        let row = SettingsRow::new(&label, &scale);
-        settings_section.add_row(&row.master_container);
-
-        // Keyboard Section
-        let settings_section = settings_page.add_section(Some("Keyboard"));
-            let label = Label::new(Some("Color (only set)"));
-            let color_picker = ColorButton::new();
-            color_picker.connect_color_set(|button| {
-                let color = button.color();
-                let red   = (color.red   / 256) as u8;
-                let green = (color.green / 256) as u8;
-                let blue  = (color.blue  / 256) as u8;
-
-                println!("Color: {}, {}, {}", red, green, blue);
-                set_effect(red, green, blue).or_crash("Failed to set color");
-            });
-        let row = SettingsRow::new(&label, &color_picker);
-        settings_section.add_row(&row.master_container);
+        let ac_settings_page = make_page(true);
+        let battery_settings_page = make_page(false);
 
         let stack = Stack::new();
-        let battery_stack = Label::new(Some("Not ready"));
-        battery_stack.set_valign(gtk::Align::Center);
-        battery_stack.set_halign(gtk::Align::Center);
-        stack.add_titled(&settings_page.master_container, "AC", "AC");
+        stack.add_titled(&ac_settings_page.master_container, "AC", "AC");
         stack.set_transition_type(gtk::StackTransitionType::SlideLeftRight);
-        stack.add_titled(&battery_stack, "Battery", "Battery");
+        stack.add_titled(&battery_settings_page.master_container, "Battery", "Battery");
         stack.connect_screen_changed(|_, _| {
             println!("Page changed");
         });
@@ -340,4 +224,122 @@ fn main() {
     });
 
     app.run();
+}
+
+fn make_page(ac: bool) -> SettingsPage {
+    let bho = get_bho().or_crash("Error reading bho");
+    let logo = get_logo(ac).or_crash("Error reading logo");
+    let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
+
+    let settings_page = SettingsPage::new();
+
+    // Logo section
+    let settings_section = settings_page.add_section(Some("Logo"));
+        let label = Label::new(Some("Turn on logo"));
+        let logo_options = ComboBoxText::new();
+            logo_options.append_text("Off");
+            logo_options.append_text("On");
+            logo_options.append_text("Breathing");
+            logo_options.set_active(Some(logo as u32));
+        logo_options.connect_changed(move |options| {
+            let logo = options.active().or_crash("Illegal state") as u8; // Unwrap: There is always one active
+            set_logo(ac, logo);
+            let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
+            options.set_active(Some(logo as u32));
+        });
+    let row = SettingsRow::new(&label, &logo_options);
+    settings_section.add_row(&row.master_container);
+
+    // Battery Health Optimizer section
+    let settings_section = settings_page.add_section(Some("Battery Health Optimizer"));
+        let label = Label::new(Some("Enable Battery Health Optimizer"));
+        let switch = Switch::new();
+        switch.set_state(bho.0);
+    let row = SettingsRow::new(&label, &switch);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Theshold"));
+        let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
+        scale.set_value(bho.1 as f64);
+        scale.set_width_request(100);
+        scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+            let is_on = switch.is_active();
+            let threshold = scale.value() as u8;
+
+            set_bho(is_on, threshold).or_crash("Error setting bho");
+
+            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+            
+            scale.set_value(threshold as f64);
+            scale.set_visible(is_on);
+            scale.set_sensitive(is_on);
+
+            return gtk::glib::Propagation::Stop;
+        }));
+        scale.set_sensitive(bho.0);
+        switch.connect_changed_active(clone!(@weak scale => move |switch| {
+            let is_on = switch.is_active();
+            let threshold = scale.value() as u8;
+            
+            set_bho(is_on, threshold); // Ignoramos errores ya que leemos
+                                       // el resultado de vuelta
+
+            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+            
+            scale.set_value(threshold as f64);
+            scale.set_visible(is_on);
+            scale.set_sensitive(is_on);
+        }));
+    let row = SettingsRow::new(&label, &scale);
+    settings_section.add_row(&row.master_container);
+
+    // Fan Speed Section
+    let settings_section = settings_page.add_section(Some("Fan Speed"));
+        let label = Label::new(Some("Auto"));
+        let switch = Switch::new();
+        let auto = fan_speed == 0;
+        switch.set_state(auto);
+    let row = SettingsRow::new(&label, &switch);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Fan Speed"));
+        let scale = Scale::with_range(gtk::Orientation::Horizontal, 3500f64, 5000f64, 1f64);
+        scale.set_value(fan_speed as f64);
+        scale.set_sensitive(fan_speed != 0);
+        scale.set_width_request(100);
+        scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+            set_fan_speed(ac, value as i32).or_crash("Error setting fan speed");
+            let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
+            let auto = fan_speed == 0;
+            scale.set_value(fan_speed as f64);
+            scale.set_sensitive(!auto);
+            switch.set_state(auto);
+            return gtk::glib::Propagation::Stop;
+        }));
+        switch.connect_changed_active(clone!(@weak scale => move |switch| {
+            set_fan_speed(ac, if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
+            let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
+            let auto = fan_speed == 0;
+            scale.set_value(fan_speed as f64);
+            scale.set_sensitive(!auto);
+            switch.set_state(auto);
+        }));
+    let row = SettingsRow::new(&label, &scale);
+    settings_section.add_row(&row.master_container);
+
+    // Keyboard Section
+    let settings_section = settings_page.add_section(Some("Keyboard"));
+        let label = Label::new(Some("Color (only set)"));
+        let color_picker = ColorButton::new();
+        color_picker.connect_color_set(|button| {
+            let color = button.color();
+            let red   = (color.red   / 256) as u8;
+            let green = (color.green / 256) as u8;
+            let blue  = (color.blue  / 256) as u8;
+
+            println!("Color: {}, {}, {}", red, green, blue);
+            set_effect(red, green, blue).or_crash("Failed to set color");
+        });
+    let row = SettingsRow::new(&label, &color_picker);
+    settings_section.add_row(&row.master_container);
+
+    settings_page
 }
