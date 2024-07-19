@@ -323,7 +323,7 @@ fn make_general_page() -> SettingsPage {
         scale.set_width_request(100);
         scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
             let is_on = switch.is_active();
-            let threshold = scale.value() as u8;
+            let threshold = value as u8;
 
             set_bho(is_on, threshold).or_crash("Error setting bho");
 
