@@ -1,3 +1,5 @@
+use std::io::ErrorKind;
+
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use gtk::{
@@ -20,6 +22,9 @@ use widgets::*;
 fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
     match comms::try_bind() {
         Ok(socket) => comms::send_to_daemon(opt, socket),
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            crash_with_msg("Can't connect to the daemon");
+        }
         Err(error) => {
             println!("Error opening socket: {error}");
             None

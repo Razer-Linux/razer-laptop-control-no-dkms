@@ -30,7 +30,7 @@ impl<T, E> Crash for Result<T, E> {
     }
 }
 
-fn crash_with_msg(msg: impl AsRef<str>) -> ! {
+pub fn crash_with_msg(msg: impl AsRef<str>) -> ! {
     let msg = msg.as_ref();
     show_msg(msg);
     std::process::exit(1);
