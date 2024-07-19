@@ -182,11 +182,15 @@ fn main() {
 
         let ac_settings_page = make_page(true);
         let battery_settings_page = make_page(false);
+        let general_page = make_general_page();
 
         let stack = Stack::new();
-        stack.add_titled(&ac_settings_page.master_container, "AC", "AC");
         stack.set_transition_type(gtk::StackTransitionType::SlideLeftRight);
+
+        stack.add_titled(&ac_settings_page.master_container, "AC", "AC");
         stack.add_titled(&battery_settings_page.master_container, "Battery", "Battery");
+        stack.add_titled(&general_page.master_container, "General", "General");
+
         stack.connect_screen_changed(|_, _| {
             println!("Page changed");
         });
@@ -227,7 +231,6 @@ fn main() {
 }
 
 fn make_page(ac: bool) -> SettingsPage {
-    let bho = get_bho().or_crash("Error reading bho");
     let logo = get_logo(ac).or_crash("Error reading logo");
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
 
@@ -248,48 +251,6 @@ fn make_page(ac: bool) -> SettingsPage {
             options.set_active(Some(logo as u32));
         });
     let row = SettingsRow::new(&label, &logo_options);
-    settings_section.add_row(&row.master_container);
-
-    // Battery Health Optimizer section
-    let settings_section = settings_page.add_section(Some("Battery Health Optimizer"));
-        let label = Label::new(Some("Enable Battery Health Optimizer"));
-        let switch = Switch::new();
-        switch.set_state(bho.0);
-    let row = SettingsRow::new(&label, &switch);
-    settings_section.add_row(&row.master_container);
-        let label = Label::new(Some("Theshold"));
-        let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
-        scale.set_value(bho.1 as f64);
-        scale.set_width_request(100);
-        scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-            let is_on = switch.is_active();
-            let threshold = scale.value() as u8;
-
-            set_bho(is_on, threshold).or_crash("Error setting bho");
-
-            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-            
-            scale.set_value(threshold as f64);
-            scale.set_visible(is_on);
-            scale.set_sensitive(is_on);
-
-            return gtk::glib::Propagation::Stop;
-        }));
-        scale.set_sensitive(bho.0);
-        switch.connect_changed_active(clone!(@weak scale => move |switch| {
-            let is_on = switch.is_active();
-            let threshold = scale.value() as u8;
-            
-            set_bho(is_on, threshold); // Ignoramos errores ya que leemos
-                                       // el resultado de vuelta
-
-            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-            
-            scale.set_value(threshold as f64);
-            scale.set_visible(is_on);
-            scale.set_sensitive(is_on);
-        }));
-    let row = SettingsRow::new(&label, &scale);
     settings_section.add_row(&row.master_container);
 
     // Fan Speed Section
@@ -342,4 +303,54 @@ fn make_page(ac: bool) -> SettingsPage {
     settings_section.add_row(&row.master_container);
 
     settings_page
+}
+
+fn make_general_page() -> SettingsPage {
+    let bho = get_bho().or_crash("Error reading bho");
+
+    let page = SettingsPage::new();
+
+    // Battery Health Optimizer section
+    let settings_section = page.add_section(Some("Battery Health Optimizer"));
+        let label = Label::new(Some("Enable Battery Health Optimizer"));
+        let switch = Switch::new();
+        switch.set_state(bho.0);
+    let row = SettingsRow::new(&label, &switch);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Theshold"));
+        let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
+        scale.set_value(bho.1 as f64);
+        scale.set_width_request(100);
+        scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+            let is_on = switch.is_active();
+            let threshold = scale.value() as u8;
+
+            set_bho(is_on, threshold).or_crash("Error setting bho");
+
+            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+            
+            scale.set_value(threshold as f64);
+            scale.set_visible(is_on);
+            scale.set_sensitive(is_on);
+
+            return gtk::glib::Propagation::Stop;
+        }));
+        scale.set_sensitive(bho.0);
+        switch.connect_changed_active(clone!(@weak scale => move |switch| {
+            let is_on = switch.is_active();
+            let threshold = scale.value() as u8;
+            
+            set_bho(is_on, threshold); // Ignoramos errores ya que leemos
+                                       // el resultado de vuelta
+
+            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+            
+            scale.set_value(threshold as f64);
+            scale.set_visible(is_on);
+            scale.set_sensitive(is_on);
+        }));
+    let row = SettingsRow::new(&label, &scale);
+    settings_section.add_row(&row.master_container);
+
+    page
 }
