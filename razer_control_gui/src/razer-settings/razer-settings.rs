@@ -226,7 +226,7 @@ fn main() {
                 
                 scale.set_value(threshold as f64);
                 scale.set_visible(is_on);
-                switch.set_sensitive(is_on);
+                scale.set_sensitive(is_on);
 
                 return gtk::glib::Propagation::Stop;
             }));
@@ -242,7 +242,7 @@ fn main() {
                 
                 scale.set_value(threshold as f64);
                 scale.set_visible(is_on);
-                switch.set_sensitive(is_on);
+                scale.set_sensitive(is_on);
             }));
         let row = SettingsRow::new(&label, &scale);
         settings_section.add_row(&row.master_container);
