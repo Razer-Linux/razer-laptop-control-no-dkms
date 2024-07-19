@@ -64,7 +64,7 @@ impl Effect for Static {
 #[derive(Copy, Clone)]
 pub struct StaticGradient {
     kbd: board::KeyboardData,
-    args: [u8; 7],
+    args: [u8; 6],
 }
 
 impl Effect for StaticGradient {
@@ -73,8 +73,8 @@ impl Effect for StaticGradient {
         Self: Sized,
     {
         let mut kbd = board::KeyboardData::new();
-        let args: [u8; 7] = [
-            args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+        let args: [u8; 6] = [
+            args[0], args[1], args[2], args[3], args[4], args[5]
         ];
         let mut c1 = board::AnimatorKeyColour::new_u(args[0], args[1], args[2]);
         let c2 = board::AnimatorKeyColour::new_u(args[3], args[4], args[5]);
@@ -126,7 +126,7 @@ impl Effect for StaticGradient {
 
 pub struct WaveGradient {
     kbd: board::KeyboardData,
-    args: [u8; 7],
+    args: [u8; 6],
     colour_band: Vec<board::AnimatorKeyColour>,
 }
 
@@ -135,8 +135,8 @@ impl Effect for WaveGradient {
     where
         Self: Sized,
     {
-        let args: [u8; 7] = [
-            args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+        let args: [u8; 6] = [
+            args[0], args[1], args[2], args[3], args[4], args[5],
         ];
         let mut wave = WaveGradient {
             kbd: board::KeyboardData::new(),
