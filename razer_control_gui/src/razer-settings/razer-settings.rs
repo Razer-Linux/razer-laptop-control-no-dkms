@@ -113,8 +113,9 @@ fn set_effect(red: u8, green: u8, blue: u8) -> Option<bool> {
     }
 }
 
-fn get_power() -> Option<u8> {
-    let response = send_data(comms::DaemonCommand::GetPwrLevel{ ac: 1 })?;
+fn get_power(ac: bool) -> Option<u8> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::GetPwrLevel{ ac })?;
 
     use comms::DaemonResponse::*;
     match response {
@@ -129,8 +130,9 @@ fn get_power() -> Option<u8> {
     }
 }
 
-fn get_fan_speed(ac: usize) -> Option<i32> {
-    let response = send_data(comms::DaemonCommand::GetFanSpeed{ ac: 1 })?;
+fn get_fan_speed(ac: bool) -> Option<i32> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::GetFanSpeed{ ac })?;
 
     use comms::DaemonResponse::*;
     match response {
@@ -145,8 +147,9 @@ fn get_fan_speed(ac: usize) -> Option<i32> {
     }
 }
 
-fn set_fan_speed(value: i32) -> Option<bool> {
-    let response = send_data(comms::DaemonCommand::SetFanSpeed{ ac: 1, rpm: value })?;
+fn set_fan_speed(ac: bool, value: i32) -> Option<bool> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::SetFanSpeed{ ac, rpm: value })?;
 
     use comms::DaemonResponse::*;
     match response {
@@ -162,6 +165,8 @@ fn set_fan_speed(value: i32) -> Option<bool> {
 }
 
 fn main() {
+    let ac = true;
+
     setup_panic_hook();
     gtk::init().or_crash("Failed to initialize GTK.");
 
@@ -169,7 +174,7 @@ fn main() {
         .application_id("com.example.hello")
         .build();
 
-    app.connect_activate(|app| {
+    app.connect_activate(move |app| {
         let window = ApplicationWindow::builder()
             .application(app)
             .default_width(640)
@@ -178,8 +183,8 @@ fn main() {
             .build();
         
         let bho = get_bho().or_crash("Error reading bho");
-        let logo = get_logo(true).or_crash("Error reading logo");
-        let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
+        let logo = get_logo(ac).or_crash("Error reading logo");
+        let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
 
         let settings_page = SettingsPage::new();
 
@@ -191,10 +196,10 @@ fn main() {
                 logo_options.append_text("On");
                 logo_options.append_text("Breathing");
                 logo_options.set_active(Some(logo as u32));
-            logo_options.connect_changed(|options| {
+            logo_options.connect_changed(move |options| {
                 let logo = options.active().or_crash("Illegal state") as u8; // Unwrap: There is always one active
-                set_logo(true, logo);
-                let logo = get_logo(true).or_crash("Error reading logo").clamp(0, 2);
+                set_logo(ac, logo);
+                let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
                 options.set_active(Some(logo as u32));
             });
         let row = SettingsRow::new(&label, &logo_options);
@@ -256,8 +261,8 @@ fn main() {
             scale.set_sensitive(fan_speed != 0);
             scale.set_width_request(100);
             scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-                set_fan_speed(value as i32).or_crash("Error setting fan speed");
-                let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
+                set_fan_speed(ac, value as i32).or_crash("Error setting fan speed");
+                let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
                 let auto = fan_speed == 0;
                 scale.set_value(fan_speed as f64);
                 scale.set_sensitive(!auto);
@@ -265,8 +270,8 @@ fn main() {
                 return gtk::glib::Propagation::Stop;
             }));
             switch.connect_changed_active(clone!(@weak scale => move |switch| {
-                set_fan_speed(if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
-                let fan_speed = get_fan_speed(1).or_crash("Error reading fan speed");
+                set_fan_speed(ac, if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
+                let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
                 let auto = fan_speed == 0;
                 scale.set_value(fan_speed as f64);
                 scale.set_sensitive(!auto);
