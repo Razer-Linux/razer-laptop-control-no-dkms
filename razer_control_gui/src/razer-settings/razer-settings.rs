@@ -4,7 +4,7 @@ use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use gtk::{
     Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar,
-    ComboBoxText, ColorButton
+    ComboBoxText, Button, ColorButton
 };
 use gtk::{glib, glib::clone};
         
@@ -304,7 +304,7 @@ fn make_page(ac: bool) -> SettingsPage {
             logo_options.append_text("Breathing");
             logo_options.set_active(Some(logo as u32));
         logo_options.connect_changed(move |options| {
-            let logo = options.active().or_crash("Illegal state") as u8; // Unwrap: There is always one active
+            let logo = options.active().or_crash("Illegal state") as u8;
             set_logo(ac, logo);
             let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
             options.set_active(Some(logo as u32));
@@ -371,19 +371,89 @@ fn make_general_page() -> SettingsPage {
 
     // Keyboard Section
     let settings_section = page.add_section(Some("Keyboard"));
-        let label = Label::new(Some("Color (only set)"));
+        let label = Label::new(Some("Effect"));
+        let effect_options = ComboBoxText::new();
+            effect_options.append_text("Static");
+            effect_options.append_text("Static Gradient");
+            effect_options.append_text("Wave Gradient");
+            effect_options.append_text("Breathing");
+            effect_options.set_active(Some(0));
+    let row = SettingsRow::new(&label, &effect_options);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Color 1"));
         let color_picker = ColorButton::new();
-        color_picker.connect_color_set(|button| {
-            let color = button.color();
-            let red   = (color.red   / 256) as u8;
-            let green = (color.green / 256) as u8;
-            let blue  = (color.blue  / 256) as u8;
-
-            println!("Color: {}, {}, {}", red, green, blue);
-            set_effect("static", vec![red, green, blue]).or_crash("Failed to set color");
-        });
     let row = SettingsRow::new(&label, &color_picker);
     settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Color 2"));
+        let color_picker_2 = ColorButton::new();
+    let row = SettingsRow::new(&label, &color_picker_2);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Write effect"));
+        let button = Button::with_label("Write");
+        button.connect_clicked(clone!(@weak effect_options, @weak color_picker, @weak color_picker_2 =>
+            move |_| {
+                let color = color_picker.color();
+                let red   = (color.red   / 256) as u8;
+                let green = (color.green / 256) as u8;
+                let blue  = (color.blue  / 256) as u8;
+
+                let color = color_picker_2.color();
+                let red2   = (color.red   / 256) as u8;
+                let green2 = (color.green / 256) as u8;
+                let blue2  = (color.blue  / 256) as u8;
+
+                let effect = effect_options.active().or_crash("Illegal state");
+                match effect {
+                    0 => {
+                        set_effect("static", vec![red, green, blue])
+                            .or_crash("Failed to set effect");
+                    },
+                    1 => {
+                        set_effect(
+                            "static_gradient",
+                            vec![red, green, blue, red2, green2, blue2]
+                        ).or_crash("Failed to set effect");
+                    },
+                    2 => {
+                        set_effect("wave_gradient",
+                            vec![red, green, blue, red2, green2, blue2]
+                        ).or_crash("Failed to set effect");
+                    }
+                    3 => {
+                        set_effect(
+                            "breathing_single",
+                            vec![red, green, blue, 10]
+                        ).or_crash("Failed to set effect");
+                    }
+                    _ => {}
+                }
+            }
+        ));
+    let row = SettingsRow::new(&label, &button);
+    settings_section.add_row(&row.master_container);
+
+
+    effect_options.connect_changed(clone!(@weak color_picker, @weak color_picker_2 =>
+        move |options| {
+            let logo = options.active().or_crash("Illegal state"); // Unwrap: There is always one active
+            
+            match logo {
+                0 => {
+                    // TODO: Color 1 visible
+                },
+                1 => {
+                    // TODO: Color 1 and 2 visible
+                },
+                2 => {
+                    // TODO: Color 1 and 2 visible
+                }
+                3 => {
+                    // TODO: Color 1, 2, and duration visible
+                }
+                _ => {}
+            }
+        }
+    ));
 
     // Battery Health Optimizer section
     let settings_section = page.add_section(Some("Battery Health Optimizer"));
