@@ -134,9 +134,9 @@ fn set_logo(ac: bool, logo_state: u8) -> Option<bool> {
     }
 }
 
-fn set_effect(red: u8, green: u8, blue: u8) -> Option<bool> {
+fn set_effect(name: &str, values: Vec<u8>) -> Option<bool> {
     let response = send_data(comms::DaemonCommand::SetEffect {
-        name: "static".into(), params: vec![red, green, blue]
+        name: name.into(), params: values
     })?;
 
     use comms::DaemonResponse::*;
@@ -347,19 +347,6 @@ fn make_page(ac: bool) -> SettingsPage {
 
     // Keyboard Section
     let settings_section = settings_page.add_section(Some("Keyboard"));
-        let label = Label::new(Some("Color (only set)"));
-        let color_picker = ColorButton::new();
-        color_picker.connect_color_set(|button| {
-            let color = button.color();
-            let red   = (color.red   / 256) as u8;
-            let green = (color.green / 256) as u8;
-            let blue  = (color.blue  / 256) as u8;
-
-            println!("Color: {}, {}, {}", red, green, blue);
-            set_effect(red, green, blue).or_crash("Failed to set color");
-        });
-    let row = SettingsRow::new(&label, &color_picker);
-    settings_section.add_row(&row.master_container);
         let label = Label::new(Some("Brightness"));
         let scale = Scale::with_range(gtk::Orientation::Horizontal, 0f64, 100f64, 1f64);
         scale.set_value(brightness as f64);
@@ -381,6 +368,22 @@ fn make_general_page() -> SettingsPage {
     let bho = get_bho().or_crash("Error reading bho");
 
     let page = SettingsPage::new();
+
+    // Keyboard Section
+    let settings_section = page.add_section(Some("Keyboard"));
+        let label = Label::new(Some("Color (only set)"));
+        let color_picker = ColorButton::new();
+        color_picker.connect_color_set(|button| {
+            let color = button.color();
+            let red   = (color.red   / 256) as u8;
+            let green = (color.green / 256) as u8;
+            let blue  = (color.blue  / 256) as u8;
+
+            println!("Color: {}, {}, {}", red, green, blue);
+            set_effect("static", vec![red, green, blue]).or_crash("Failed to set color");
+        });
+    let row = SettingsRow::new(&label, &color_picker);
+    settings_section.add_row(&row.master_container);
 
     // Battery Health Optimizer section
     let settings_section = page.add_section(Some("Battery Health Optimizer"));
