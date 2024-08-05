@@ -154,37 +154,66 @@ fn set_effect(name: &str, values: Vec<u8>) -> Option<bool> {
     }
 }
 
-// fn set_power(ac: bool, logo_state: u8) -> Option<bool> {
-//     let ac = if ac { 1 } else { 0 };
-//     let response = send_data(comms::DaemonCommand::SetPowerMode {
-//         ac, pwr: (), cpu: (), gpu: () }
-//     )?;
-
-//     use comms::DaemonResponse::*;
-//     match response {
-//         SetPowerMode { result } => {
-//             Some(result)
-//         }
-//         response => {
-//             // This should not happen
-//             println!("Instead of SetLogoLedState got {response:?}");
-//             None
-//         }
-//     }
-// }
-
-fn get_power(ac: bool) -> Option<u8> {
+fn get_power(ac: bool) -> Option<(u8, u8, u8)> {
     let ac = if ac { 1 } else { 0 };
-    let response = send_data(comms::DaemonCommand::GetPwrLevel{ ac })?;
+    let mut result = (0, 0, 0);
 
+    let response = send_data(comms::DaemonCommand::GetPwrLevel{ ac })?;
     use comms::DaemonResponse::*;
     match response {
         GetPwrLevel { pwr } => {
-            Some(pwr)
+            result.0 = pwr;
         }
         response => {
             // This should not happen
             println!("Instead of GetPwrLevel got {response:?}");
+            return None
+        }
+    }
+
+    let response = send_data(comms::DaemonCommand::GetCPUBoost { ac })?;
+    use comms::DaemonResponse::*;
+    match response {
+        GetCPUBoost { cpu } => {
+            result.1 = cpu;
+        }
+        response => {
+            // This should not happen
+            println!("Instead of GetCPUBoost got {response:?}");
+            return None
+        }
+    }
+
+    let response = send_data(comms::DaemonCommand::GetGPUBoost { ac })?;
+    use comms::DaemonResponse::*;
+    match response {
+        GetGPUBoost { gpu } => {
+            result.2 = gpu;
+        }
+        response => {
+            // This should not happen
+            println!("Instead of GetGPUBoost got {response:?}");
+            return None
+        }
+    }
+
+    Some(result)
+}
+
+fn set_power(ac: bool, power: (u8, u8, u8)) -> Option<bool> {
+    let ac = if ac { 1 } else { 0 };
+    let response = send_data(comms::DaemonCommand::SetPowerMode {
+        ac, pwr: power.0, cpu: power.1, gpu: power.2 }
+    )?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        SetPowerMode { result } => {
+            Some(result)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of SetPowerMode got {response:?}");
             None
         }
     }
@@ -301,6 +330,7 @@ fn make_page(ac: bool) -> SettingsPage {
     let logo = get_logo(ac);
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
     let brightness = get_brightness(ac).or_crash("Error reading brightness");
+    let power = get_power(ac);
 
     let settings_page = SettingsPage::new();
 
@@ -321,6 +351,111 @@ fn make_page(ac: bool) -> SettingsPage {
             });
         let row = SettingsRow::new(&label, &logo_options);
         settings_section.add_row(&row.master_container);
+    }
+
+    // Power section
+    if let Some(power) = power {
+        let settings_section = settings_page.add_section(Some("Power"));
+            let label = Label::new(Some("Power Profile"));
+            let power_profile = ComboBoxText::new();
+                power_profile.append_text("Balanced");
+                power_profile.append_text("Gaming");
+                power_profile.append_text("Creator");
+                power_profile.append_text("Silent");
+                power_profile.append_text("Custom");
+                power_profile.set_active(Some(power.0 as u32));
+                power_profile.set_width_request(100);
+        let row = SettingsRow::new(&label, &power_profile);
+        settings_section.add_row(&row.master_container);
+            let label = Label::new(Some("CPU Boost"));
+            let cpu_boost = ComboBoxText::new();
+                cpu_boost.append_text("Low");
+                cpu_boost.append_text("Medium");
+                cpu_boost.append_text("High");
+                cpu_boost.append_text("Boost");
+                cpu_boost.set_active(Some(power.1 as u32));
+                cpu_boost.set_width_request(100);
+        let row = SettingsRow::new(&label, &cpu_boost);
+        let cpu_boost_row = &row.master_container;
+        settings_section.add_row(cpu_boost_row);
+            let label = Label::new(Some("GPU Boost"));
+            let gpu_boost = ComboBoxText::new();
+                gpu_boost.append_text("Low");
+                gpu_boost.append_text("Medium");
+                gpu_boost.append_text("High");
+                gpu_boost.set_active(Some(power.2 as u32));
+                gpu_boost.set_width_request(100);
+        let row = SettingsRow::new(&label, &gpu_boost);
+        let gpu_boost_row = &row.master_container;
+        settings_section.add_row(gpu_boost_row);
+        settings_section.add_row(&row.master_container);
+
+        cpu_boost_row.show_all();
+        cpu_boost_row.set_no_show_all(true);
+        gpu_boost_row.show_all();
+        gpu_boost_row.set_no_show_all(true);
+        if power.0 == 4 {
+            cpu_boost_row.set_visible(true);
+            gpu_boost_row.set_visible(true);
+        } else {
+            cpu_boost_row.set_visible(false);
+            gpu_boost_row.set_visible(false);
+        }
+
+        power_profile.connect_changed(clone!(
+            @weak cpu_boost, @weak gpu_boost,
+            @weak cpu_boost_row, @weak gpu_boost_row
+            =>
+            move |power_profile| {
+                let profile = power_profile.active().or_crash("Illegal state") as u8;
+                let cpu     = cpu_boost.active().or_crash("Illegal state") as u8;
+                let gpu     = gpu_boost.active().or_crash("Illegal state") as u8;
+                set_power(ac, (profile, cpu, gpu)).or_crash("Error setting power");
+
+                let power = get_power(ac).or_crash("Error reading power");
+                power_profile.set_active(Some(power.0 as u32));
+                cpu_boost.set_active(Some(power.1 as u32));
+                gpu_boost.set_active(Some(power.2 as u32));
+
+                if power.0 == 4 {
+                    cpu_boost_row.set_visible(true);
+                    gpu_boost_row.set_visible(true);
+                } else {
+                    cpu_boost_row.set_visible(false);
+                    gpu_boost_row.set_visible(false);
+                }
+            }
+        ));
+        cpu_boost.connect_changed(clone!(
+            @weak power_profile, @weak gpu_boost
+            =>
+            move |cpu_boost| {
+                let profile = power_profile.active().or_crash("Illegal state") as u8;
+                let cpu     = cpu_boost.active().or_crash("Illegal state") as u8;
+                let gpu     = gpu_boost.active().or_crash("Illegal state") as u8;
+                set_power(ac, (profile, cpu, gpu)).or_crash("Error setting power");
+
+                let power = get_power(ac).or_crash("Error reading power");
+                power_profile.set_active(Some(power.0 as u32));
+                cpu_boost.set_active(Some(power.1 as u32));
+                gpu_boost.set_active(Some(power.2 as u32));
+            }
+        ));
+        gpu_boost.connect_changed(clone!(
+            @weak power_profile, @weak cpu_boost
+            =>
+            move |gpu_boost| {
+                let profile = power_profile.active().or_crash("Illegal state") as u8;
+                let cpu     = cpu_boost.active().or_crash("Illegal state") as u8;
+                let gpu     = gpu_boost.active().or_crash("Illegal state") as u8;
+                set_power(ac, (profile, cpu, gpu)).or_crash("Error setting power");
+
+                let power = get_power(ac).or_crash("Error reading power");
+                power_profile.set_active(Some(power.0 as u32));
+                cpu_boost.set_active(Some(power.1 as u32));
+                gpu_boost.set_active(Some(power.2 as u32));
+            }
+        ));
     }
 
     // Fan Speed Section
