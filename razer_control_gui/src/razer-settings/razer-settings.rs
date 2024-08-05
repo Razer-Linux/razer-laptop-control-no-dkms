@@ -15,9 +15,11 @@ use gtk::{glib, glib::clone};
 mod comms;
 mod error_handling;
 mod widgets;
+mod util;
 
 use error_handling::*;
 use widgets::*;
+use util::*;
 
 fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
     match comms::try_bind() {
@@ -283,6 +285,13 @@ fn main() {
         window.set_child(Some(&vbox));
 
         window.show_all();
+
+        // If we know we are not running on AC, we show the battery tab by
+        // default
+        match check_if_running_on_ac_power() {
+            Some(false) => stack.set_visible_child_name("Battery"),
+            _ => {}
+        }
     });
 
     app.run();
