@@ -2,19 +2,13 @@
 
 ## Current features
 * Full background daemon - Auto load state on machine startup based on last configuration
-* CLI application for adjusting basic settings
+* CLI and GUI application for adjusting basic settings
 
-## NOTICE: GUI instructions
-
-This branch/fork adds a basic GUI to control some settings. It needs some extra libraries to build. Here is a list:
-
-`libgdk-pixbuf2.0-dev libcairo-dev libatk1.0-dev libpango1.0-dev`
-
-The GUI can be run with `cargo run --bin razer-settings`. Installing it will also install the GUI, but it might not be added to the startup menu.
+![](Screenshoot.png)
 
 ## Installing
 1. Install cargo or rustc
-2. add `libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev` packages (or equivelent)
+2. add `libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev libgdk-pixbuf2.0-dev libcairo-dev libatk1.0-dev libpango1.0-dev` packages (or equivelent)
 3. run `./install.sh install` as a normal user
 4. reboot
 5. Enjoy!
