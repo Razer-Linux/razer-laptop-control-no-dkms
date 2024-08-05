@@ -37,7 +37,11 @@ install() {
         mkdir -p /usr/share/razercontrol
         cp target/release/razer-cli /usr/bin/
         cp target/release/razer-settings /usr/bin/
-        cp data/gui/razer-settings.desktop /usr/share/applications/
+        if ls /usr/share/applications/*.desktop 1> /dev/null 2>&1; then
+            # We only install the desktop file if there are already desktop
+            # files on the system
+            cp data/gui/razer-settings.desktop /usr/share/applications/
+        fi
         cp target/release/daemon /usr/share/razercontrol/
         cp data/devices/laptops.json /usr/share/razercontrol/
         cp data/udev/99-hidraw-permissions.rules /etc/udev/rules.d/
