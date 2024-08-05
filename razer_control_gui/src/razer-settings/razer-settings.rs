@@ -289,28 +289,30 @@ fn main() {
 }
 
 fn make_page(ac: bool) -> SettingsPage {
-    let logo = get_logo(ac).or_crash("Error reading logo");
+    let logo = get_logo(ac);
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
     let brightness = get_brightness(ac).or_crash("Error reading brightness");
 
     let settings_page = SettingsPage::new();
 
     // Logo section
-    let settings_section = settings_page.add_section(Some("Logo"));
-        let label = Label::new(Some("Turn on logo"));
-        let logo_options = ComboBoxText::new();
-            logo_options.append_text("Off");
-            logo_options.append_text("On");
-            logo_options.append_text("Breathing");
-            logo_options.set_active(Some(logo as u32));
-        logo_options.connect_changed(move |options| {
-            let logo = options.active().or_crash("Illegal state") as u8;
-            set_logo(ac, logo);
-            let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
-            options.set_active(Some(logo as u32));
-        });
-    let row = SettingsRow::new(&label, &logo_options);
-    settings_section.add_row(&row.master_container);
+    if let Some(logo) = logo {
+        let settings_section = settings_page.add_section(Some("Logo"));
+            let label = Label::new(Some("Turn on logo"));
+            let logo_options = ComboBoxText::new();
+                logo_options.append_text("Off");
+                logo_options.append_text("On");
+                logo_options.append_text("Breathing");
+                logo_options.set_active(Some(logo as u32));
+            logo_options.connect_changed(move |options| {
+                let logo = options.active().or_crash("Illegal state") as u8;
+                set_logo(ac, logo);
+                let logo = get_logo(ac).or_crash("Error reading logo").clamp(0, 2);
+                options.set_active(Some(logo as u32));
+            });
+        let row = SettingsRow::new(&label, &logo_options);
+        settings_section.add_row(&row.master_container);
+    }
 
     // Fan Speed Section
     let settings_section = settings_page.add_section(Some("Fan Speed"));
@@ -365,7 +367,7 @@ fn make_page(ac: bool) -> SettingsPage {
 }
 
 fn make_general_page() -> SettingsPage {
-    let bho = get_bho().or_crash("Error reading bho");
+    let bho = get_bho();
 
     let page = SettingsPage::new();
 
@@ -456,46 +458,48 @@ fn make_general_page() -> SettingsPage {
     ));
 
     // Battery Health Optimizer section
-    let settings_section = page.add_section(Some("Battery Health Optimizer"));
-        let label = Label::new(Some("Enable Battery Health Optimizer"));
-        let switch = Switch::new();
-        switch.set_state(bho.0);
-    let row = SettingsRow::new(&label, &switch);
-    settings_section.add_row(&row.master_container);
-        let label = Label::new(Some("Theshold"));
-        let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
-        scale.set_value(bho.1 as f64);
-        scale.set_width_request(100);
-        scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-            let is_on = switch.is_active();
-            let threshold = value as u8;
+    if let Some(bho) = bho {
+        let settings_section = page.add_section(Some("Battery Health Optimizer"));
+            let label = Label::new(Some("Enable Battery Health Optimizer"));
+            let switch = Switch::new();
+            switch.set_state(bho.0);
+        let row = SettingsRow::new(&label, &switch);
+        settings_section.add_row(&row.master_container);
+            let label = Label::new(Some("Theshold"));
+            let scale = Scale::with_range(gtk::Orientation::Horizontal, 65f64, 80f64, 1f64);
+            scale.set_value(bho.1 as f64);
+            scale.set_width_request(100);
+            scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+                let is_on = switch.is_active();
+                let threshold = value as u8;
 
-            set_bho(is_on, threshold).or_crash("Error setting bho");
+                set_bho(is_on, threshold).or_crash("Error setting bho");
 
-            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-            
-            scale.set_value(threshold as f64);
-            scale.set_visible(is_on);
-            scale.set_sensitive(is_on);
+                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+                
+                scale.set_value(threshold as f64);
+                scale.set_visible(is_on);
+                scale.set_sensitive(is_on);
 
-            return gtk::glib::Propagation::Stop;
-        }));
-        scale.set_sensitive(bho.0);
-        switch.connect_changed_active(clone!(@weak scale => move |switch| {
-            let is_on = switch.is_active();
-            let threshold = scale.value() as u8;
-            
-            set_bho(is_on, threshold); // Ignoramos errores ya que leemos
-                                       // el resultado de vuelta
+                return gtk::glib::Propagation::Stop;
+            }));
+            scale.set_sensitive(bho.0);
+            switch.connect_changed_active(clone!(@weak scale => move |switch| {
+                let is_on = switch.is_active();
+                let threshold = scale.value() as u8;
+                
+                set_bho(is_on, threshold); // Ignoramos errores ya que leemos
+                                           // el resultado de vuelta
 
-            let (is_on, threshold) = get_bho().or_crash("Error reading bho");
-            
-            scale.set_value(threshold as f64);
-            scale.set_visible(is_on);
-            scale.set_sensitive(is_on);
-        }));
-    let row = SettingsRow::new(&label, &scale);
-    settings_section.add_row(&row.master_container);
+                let (is_on, threshold) = get_bho().or_crash("Error reading bho");
+                
+                scale.set_value(threshold as f64);
+                scale.set_visible(is_on);
+                scale.set_sensitive(is_on);
+            }));
+        let row = SettingsRow::new(&label, &scale);
+        settings_section.add_row(&row.master_container);
+    }
 
     page
 }
