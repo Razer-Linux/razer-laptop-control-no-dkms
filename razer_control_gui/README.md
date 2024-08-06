@@ -2,11 +2,13 @@
 
 ## Current features
 * Full background daemon - Auto load state on machine startup based on last configuration
-* CLI application for adjusting basic settings
+* CLI and GUI application for adjusting basic settings
+
+![](Screenshoot.png)
 
 ## Installing
 1. Install cargo or rustc
-2. add `libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev` packages (or equivelent)
+2. add `libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev libgtk-3-dev` packages (or equivelent)
 3. run `./install.sh install` as a normal user
 4. reboot
 5. Enjoy!

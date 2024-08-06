@@ -23,7 +23,7 @@ pub struct EffectSave {
 }
 
 /// Base effect trait.
-/// An effect is a lighting function that is updated 30 times per seonc
+/// An effect is a lighting function that is updated 30 times per second
 /// in order to create an animation of some description on the laptop's
 /// keyboard
 pub trait Effect: Send + Sync {
