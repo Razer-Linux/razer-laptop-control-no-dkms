@@ -472,6 +472,7 @@ fn make_page(ac: bool) -> SettingsPage {
         scale.set_sensitive(fan_speed != 0);
         scale.set_width_request(100);
         scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
+            let value = value.clamp(3500f64, 5000f64);
             set_fan_speed(ac, value as i32).or_crash("Error setting fan speed");
             let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
             let auto = fan_speed == 0;
@@ -615,7 +616,7 @@ fn make_general_page() -> SettingsPage {
             scale.set_width_request(100);
             scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
                 let is_on = switch.is_active();
-                let threshold = value as u8;
+                let threshold = value.clamp(50f64, 80f64) as u8;
 
                 set_bho(is_on, threshold).or_crash("Error setting bho");
 
@@ -630,7 +631,7 @@ fn make_general_page() -> SettingsPage {
             scale.set_sensitive(bho.0);
             switch.connect_changed_active(clone!(@weak scale => move |switch| {
                 let is_on = switch.is_active();
-                let threshold = scale.value() as u8;
+                let threshold = scale.value().clamp(50f64, 80f64) as u8;
                 
                 set_bho(is_on, threshold); // Ignoramos errores ya que leemos
                                            // el resultado de vuelta
