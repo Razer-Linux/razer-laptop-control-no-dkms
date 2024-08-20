@@ -62,6 +62,12 @@ pub fn bind() -> Option<UnixStream> {
 }
 
 #[allow(dead_code)]
+/// We use this from the app, but it should replace bind
+pub fn try_bind() -> std::io::Result<UnixStream> {
+    UnixStream::connect(SOCKET_PATH)
+}
+
+#[allow(dead_code)]
 pub fn create() -> Option<UnixListener> {
     if let Ok(_) = std::fs::metadata(SOCKET_PATH) {
         eprintln!("UNIX Socket already exists. Is another daemon running?");
