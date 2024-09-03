@@ -16,6 +16,8 @@
         pkgs = nixpkgs.legacyPackages.${system};
         name = "razer-laptop-control";
       in {
+        formatter = pkgs.nixfmt-rfc-style;
+
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = name;
           version = "0.2.0";
