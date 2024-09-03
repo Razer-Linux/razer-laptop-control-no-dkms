@@ -30,6 +30,9 @@
             dbus.dev
             hidapi
             systemd
+            glib
+            pango
+            gtk3
           ];
 
           src = ./razer_control_gui;
