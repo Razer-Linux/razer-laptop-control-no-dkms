@@ -6,22 +6,34 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = inputs @ {
-    self,
-    nixpkgs,
-    flake-utils,
-  }:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         pkgs = nixpkgs.legacyPackages.${system};
         name = "razer-laptop-control";
-      in {
+      in
+      {
+        formatter = pkgs.nixfmt-rfc-style;
+
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = name;
           version = "0.2.0";
 
-          nativeBuildInputs = with pkgs; [pkg-config];
-          buildInputs = with pkgs; [dbus.dev hidapi systemd];
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+          buildInputs = with pkgs; [
+            dbus.dev
+            hidapi
+            systemd
+            glib
+            pango
+            gtk3
+          ];
 
           src = ./razer_control_gui;
 
@@ -29,11 +41,30 @@
             substituteInPlace src/device.rs --replace '/usr/share/razercontrol/laptops.json' '${./razer_control_gui/data/devices/laptops.json}'
           '';
 
+          postBuild =
+            let
+              app = "razer-settings";
+              path = "$out/share/applications/${app}.desktop";
+            in
+            ''
+              # Install .desktop file
+              mkdir -p $out/share/applications
+              cat > ${path} <<EOF
+              [Desktop Entry]
+              Name=Razer Settings
+              Exec=$out/bin/${app}
+              Type=Application
+              Categories=Utility;
+              EOF
+              chmod +x ${path}
+            '';
+
           postInstall = ''
             mkdir -p $out/lib/udev/rules.d
             mkdir -p $out/libexec
             mv $out/bin/daemon $out/libexec
             cp ${./razer_control_gui/data/udev/99-hidraw-permissions.rules} $out/lib/udev/rules.d/99-hidraw-permissions.rules
+
           '';
 
           cargoLock = {
@@ -43,15 +74,18 @@
       }
     )
     // {
-      nixosModules.default = {
-        config,
-        lib,
-        pkgs,
-        ...
-      }:
-        with lib; let
+      nixosModules.default =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        with lib;
+        let
           cfg = config.services.razer-laptop-control;
-        in {
+        in
+        {
           options.services.razer-laptop-control = {
             enable = mkEnableOption "Enables razer-laptop-control";
             package = mkOption {
@@ -62,8 +96,8 @@
 
           config = mkIf cfg.enable {
             services.upower.enable = true;
-            environment.systemPackages = [cfg.package];
-            services.udev.packages = [cfg.package];
+            environment.systemPackages = [ cfg.package ];
+            services.udev.packages = [ cfg.package ];
 
             systemd.user.services."razerdaemon" = {
               description = "Razer laptop control daemon";
@@ -72,7 +106,7 @@
                 ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.local/share/razercontrol";
                 ExecStart = "${cfg.package}/libexec/daemon";
               };
-              wantedBy = ["default.target"];
+              wantedBy = [ "default.target" ];
             };
           };
         };
