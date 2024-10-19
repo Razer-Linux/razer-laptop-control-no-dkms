@@ -258,7 +258,7 @@ fn main() {
     gtk::init().or_crash("Failed to initialize GTK.");
 
     let app = Application::builder()
-        .application_id("com.example.hello")
+        .application_id("com.example.hello") // TODO: Change this name
         .build();
 
     app.connect_activate(move |app| {
