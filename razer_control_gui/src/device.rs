@@ -620,7 +620,7 @@ impl RazerLaptop {
         return self.ac_state as usize;
     }
 
-    pub fn get_name(&mut self) -> String {
+    pub fn get_name(&self) -> String {
         return self.name.clone();
     }
 
