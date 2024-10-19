@@ -359,6 +359,13 @@ pub fn process_client_request(cmd: comms::DaemonCommand) -> Option<comms::Daemon
                     }
                 );
             }
+            comms::DaemonCommand::GetDeviceName => {
+                let name = match &d.device {
+                    Some(device) => device.get_name(),
+                    None => "Unknown Device".into()
+                };
+                return Some(comms::DaemonResponse::GetDeviceName { name });
+            }
 
         };
     } else {
