@@ -17,6 +17,7 @@ mod error_handling;
 mod widgets;
 mod util;
 
+use service::SupportedDevice;
 use error_handling::*;
 use widgets::*;
 use util::*;
@@ -29,6 +30,22 @@ fn send_data(opt: comms::DaemonCommand) -> Option<comms::DaemonResponse> {
         }
         Err(error) => {
             println!("Error opening socket: {error}");
+            None
+        }
+    }
+}
+
+fn get_device_name() -> Option<String> {
+    let response = send_data(comms::DaemonCommand::GetDeviceName)?;
+
+    use comms::DaemonResponse::*;
+    match response {
+        GetDeviceName { name } => {
+            Some(name)
+        }
+        response => {
+            // This should not happen
+            println!("Instead of GetDeviceName got {response:?}");
             None
         }
     }
@@ -257,11 +274,25 @@ fn main() {
     setup_panic_hook();
     gtk::init().or_crash("Failed to initialize GTK.");
 
+    let device_file = std::fs::read_to_string(service::DEVICE_FILE)
+        .or_crash("Failed to read the device file");
+    let devices: Vec<SupportedDevice> = serde_json::from_str(&device_file)
+        .or_crash("Failed to parse the device file");
+
+    let device_name = get_device_name()
+        .or_crash("Failed to get device name");
+
     let app = Application::builder()
         .application_id("com.example.hello") // TODO: Change this name
         .build();
 
     app.connect_activate(move |app| {
+        // For now we get the device from the device name. One is duplicated but
+        // its settings are the same.
+        // TODO: Document this or make it more robust
+        let device = devices.iter().find(|d| d.name == device_name)
+            .or_crash("Failed to get device info");
+
         let window = ApplicationWindow::builder()
             .application(app)
             .default_width(640)
@@ -269,8 +300,8 @@ fn main() {
             .title("Razer Settings")
             .build();
 
-        let ac_settings_page = make_page(true);
-        let battery_settings_page = make_page(false);
+        let ac_settings_page = make_page(true, device.clone());
+        let battery_settings_page = make_page(false, device.clone());
         let general_page = make_general_page();
 
         let stack = Stack::new();
@@ -326,11 +357,16 @@ fn main() {
     app.run();
 }
 
-fn make_page(ac: bool) -> SettingsPage {
+fn make_page(ac: bool, device: SupportedDevice) -> SettingsPage {
     let logo = get_logo(ac);
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
     let brightness = get_brightness(ac).or_crash("Error reading brightness");
     let power = get_power(ac);
+
+    let min_fan_speed = *device.fan.get(0)
+        .or_crash("Invalid fan values") as f64;
+    let max_fan_speed = *device.fan.get(1)
+        .or_crash("Invalid fan values") as f64;
 
     let settings_page = SettingsPage::new();
 
@@ -467,12 +503,12 @@ fn make_page(ac: bool) -> SettingsPage {
     let row = SettingsRow::new(&label, &switch);
     settings_section.add_row(&row.master_container);
         let label = Label::new(Some("Fan Speed"));
-        let scale = Scale::with_range(gtk::Orientation::Horizontal, 3500f64, 5000f64, 1f64);
+        let scale = Scale::with_range(gtk::Orientation::Horizontal, min_fan_speed, max_fan_speed, 1f64);
         scale.set_value(fan_speed as f64);
         scale.set_sensitive(fan_speed != 0);
         scale.set_width_request(100);
         scale.connect_change_value(clone!(@weak switch => @default-return gtk::glib::Propagation::Stop, move |scale, stype, value| {
-            let value = value.clamp(3500f64, 5000f64);
+            let value = value.clamp(min_fan_speed, max_fan_speed);
             set_fan_speed(ac, value as i32).or_crash("Error setting fan speed");
             let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
             let auto = fan_speed == 0;
@@ -482,7 +518,7 @@ fn make_page(ac: bool) -> SettingsPage {
             return gtk::glib::Propagation::Stop;
         }));
         switch.connect_changed_active(clone!(@weak scale => move |switch| {
-            set_fan_speed(ac, if switch.is_active() { 0 } else { 3500 }).or_crash("Error setting fan speed");
+            set_fan_speed(ac, if switch.is_active() { 0 } else { min_fan_speed as i32 }).or_crash("Error setting fan speed");
             let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
             let auto = fan_speed == 0;
             scale.set_value(fan_speed as f64);
