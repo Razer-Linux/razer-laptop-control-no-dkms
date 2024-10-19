@@ -199,17 +199,18 @@ fn main() {
     // Signal handler - cleanup if we are told to exit
     let mut signals = Signals::new(&[SIGINT, SIGTERM]).unwrap();
     let clean_thread = thread::spawn(move || {
-        for _ in signals.forever() {
-            println!("Received signal, cleaning up");
-            let json = EFFECT_MANAGER.lock().unwrap().save();
-            if let Err(e) = config::Configuration::write_effects_save(json) {
-                eprintln!("Error write config {:?}", e);
-            }
-            if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
-                std::fs::remove_file(comms::SOCKET_PATH).unwrap();
-            }
-            std::process::exit(0);
+        let _ = signals.forever().next();
+        
+        // If we reach this point, we have a signal and it is time to exit
+        println!("Received signal, cleaning up");
+        let json = EFFECT_MANAGER.lock().unwrap().save();
+        if let Err(e) = config::Configuration::write_effects_save(json) {
+            eprintln!("Error write config {:?}", e);
         }
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+        std::process::exit(0);
     });
 
 
