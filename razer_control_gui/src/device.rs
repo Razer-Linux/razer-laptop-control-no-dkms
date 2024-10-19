@@ -181,7 +181,7 @@ impl DeviceManager {
 
     fn get_ac_config(&mut self, ac: usize) -> Option<config::PowerConfig> {
         if let Some(c) = self.get_config() {
-            return Some(c.power[ac as usize]);
+            return Some(c.power[ac]);
         }
 
         return None;
@@ -234,7 +234,7 @@ impl DeviceManager {
         if let Some(config) = self.get_config() {
             if config.power[ac].idle != timeout {
                 config.power[ac].idle = timeout;
-                if config.sync == true {
+                if config.sync {
                     let other = (ac + 1) & 0x01;
                     config.power[other].idle = timeout;
                 }
@@ -311,7 +311,7 @@ impl DeviceManager {
         let mut res: bool = false;
         if let Some(config) = self.get_config() {
             config.power[ac].logo_state = logo_state;
-            if config.sync == true {
+            if config.sync {
                 let other = (ac + 1) & 0x01;
                 config.power[other].logo_state = logo_state;
             }
@@ -352,7 +352,7 @@ impl DeviceManager {
         let _val = brightness as u16  * 255 / 100;
         if let Some(config) = self.get_config() {
             config.power[ac].brightness = _val as u8;
-            if config.sync == true {
+            if config.sync {
                 let other = (ac + 1) & 0x01;
                 config.power[other].brightness = _val as u8;
             }
@@ -593,7 +593,7 @@ impl RazerLaptop {
     pub fn set_config(&mut self, config: config::PowerConfig) -> bool {
         let mut ret: bool = false;
 
-        if self.screensaver == false {
+        if !self.screensaver {
             ret |= self.set_brightness(config.brightness);
             ret |= self.set_logo_led_state(config.logo_state);
         } else {
@@ -653,7 +653,7 @@ impl RazerLaptop {
     pub fn set_standard_effect(&mut self, effect_id: u8, params: Vec<u8>) -> bool {
         let mut report: RazerPacket = RazerPacket::new(0x03, 0x0a, 80);
         report.args[0] = effect_id; // effect id
-        if params.len() > 0 {
+        if !params.is_empty() {
             for idx in 0..params.len() {
                 report.args[idx+1] = params[idx];
             }
@@ -732,7 +732,7 @@ impl RazerLaptop {
 
     fn set_cpu_boost(&mut self, mut boost: u8) -> bool {
         let mut report: RazerPacket = RazerPacket::new(0x0d, 0x07, 0x03);
-        if boost == 3 && self.have_feature("boost".to_string()) == false {
+        if boost == 3 && !self.have_feature("boost".to_string()) {
             boost = 2;
         }
         report.args[0] = 0x00;
@@ -970,7 +970,7 @@ impl RazerLaptop {
 // top bit flags whether battery health optimization is on or off
 // bottom bits are the actual threshold that it is set to
 fn byte_to_bho(u: u8) -> (bool, u8) {
-    return (u & (1 << 7) != 0, (u & 0b0111_1111) as u8);
+    return (u & (1 << 7) != 0, (u & 0b0111_1111));
 }
 
 fn bho_to_byte(is_on: bool, threshold: u8) -> u8 {

@@ -91,7 +91,7 @@ pub fn create() -> Option<UnixListener> {
 pub fn send_to_daemon(command: DaemonCommand, mut sock: UnixStream) -> Option<DaemonResponse> {
     if let Ok(encoded) = bincode::serialize(&command) {
         if sock.write_all(&encoded).is_ok() {
-            let mut buf = [0 as u8; 4096];
+            let mut buf = [0u8; 4096];
             return match sock.read(&mut buf) {
                 Ok(readed) if readed > 0 => read_from_socked_resp(&buf[0..readed]),
                 Ok(_) => {

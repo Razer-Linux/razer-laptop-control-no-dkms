@@ -127,7 +127,7 @@ fn main() {
         let _id = proxy.match_signal(|h: screensaver::OrgFreedesktopScreenSaverActiveChanged, _: &Connection, _: &Message| {
             println!("ActiveChanged {:?}", h.arg0);
             if let Ok(mut d) = DEV_MANAGER.lock() {
-                if h.arg0 == true {
+                if h.arg0 {
                     d.light_off();
                 } else {
                     d.restore_light();
@@ -138,7 +138,7 @@ fn main() {
 
         loop { 
             if let Ok(res) = dbus_session.process(time::Duration::from_millis(1000)) {
-                if res == true {
+                if res {
                     if let Ok(mut d) = DEV_MANAGER.lock() {
                         d.add_active_watch(&proxy_idle);
                     }
@@ -184,7 +184,7 @@ fn main() {
             println!("PrepareForSleep {:?}", h.start);
             if let Ok(mut d) = DEV_MANAGER.lock() {
                 d.set_ac_state_get();
-                if h.start == true {
+                if h.start {
                     d.light_off();
                 } else {
                     d.restore_light();
@@ -197,7 +197,7 @@ fn main() {
     });
 
     // Signal handler - cleanup if we are told to exit
-    let mut signals = Signals::new(&[SIGINT, SIGTERM]).unwrap();
+    let mut signals = Signals::new([SIGINT, SIGTERM]).unwrap();
     let clean_thread = thread::spawn(move || {
         let _ = signals.forever().next();
         
@@ -241,7 +241,7 @@ fn setup_panic_hook() {
 }
 
 fn handle_data(mut stream: UnixStream) {
-    let mut buffer = [0 as u8; 4096];
+    let mut buffer = [0u8; 4096];
     if stream.read(&mut buffer).is_err() {
         return;
     }

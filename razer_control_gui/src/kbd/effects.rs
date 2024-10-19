@@ -41,7 +41,7 @@ impl Effect for Static {
     }
 
     fn clone_box(&self) -> Box<dyn Effect> {
-        return Box::new(self.clone());
+        return Box::new(*self);
     }
 
     fn save(&mut self) -> EffectSave {
@@ -104,7 +104,7 @@ impl Effect for StaticGradient {
     }
 
     fn clone_box(&self) -> Box<dyn Effect> {
-        return Box::new(self.clone());
+        return Box::new(*self);
     }
 
     fn save(&mut self) -> EffectSave {
@@ -290,7 +290,7 @@ impl Effect for BreathSingle {
     }
 
     fn clone_box(&self) -> Box<dyn Effect> {
-        return Box::new(self.clone());
+        return Box::new(*self);
     }
 
     fn save(&mut self) -> EffectSave {

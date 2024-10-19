@@ -7,7 +7,7 @@ pub fn check_if_running_on_ac_power() -> Option<bool> {
     
     result.map(|contents| {
         println!("contents: {contents:?}");
-        if &contents == "1\n".as_bytes() { true  }
-        else                             { false }
+        
+        contents == "1\n".as_bytes()
     }).ok()
 }

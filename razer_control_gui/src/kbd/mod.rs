@@ -70,7 +70,7 @@ impl EffectLayer {
     }
 
     fn get_save(&mut self) -> Option<serde_json::Value> {
-        match serde_json::to_value(&self.effect.save()) {
+        match serde_json::to_value(self.effect.save()) {
             Ok(mut x) => {
                 let keys = serde_json::to_value(&self.key_mask).unwrap();
                 x.as_object_mut()
@@ -148,7 +148,7 @@ impl EffectManager {
     pub fn pop_effect(&mut self, laptop: &mut device::RazerLaptop) {
         self.layers.pop();
         // If no more layers, erase keyboard rendering and set it to black
-        if self.layers.len() == 0 {
+        if self.layers.is_empty() {
             self.render_board.set_kbd_colour(0, 0, 0); 
             self.render_board.update_kbd(laptop);
             self.render_board.update_custom_mode(laptop);
@@ -157,13 +157,13 @@ impl EffectManager {
 
     pub fn update(&mut self, laptop: &mut device::RazerLaptop) {
         // Do nothing if we have no effects!
-        if self.layers.len() == 0 {
+        if self.layers.is_empty() {
             return;
         }
         for layer in self.layers.iter_mut() {
             let tmp_board = layer.update();
             for (pos, state) in layer.key_mask.iter().enumerate() {
-                if *state == true {
+                if *state {
                     self.render_board.set_key_at(pos, tmp_board.get_key_at(pos))
                 }
             }
