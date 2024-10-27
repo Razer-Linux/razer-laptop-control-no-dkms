@@ -426,7 +426,6 @@ fn make_page(ac: bool, device: SupportedDevice) -> SettingsPage {
         let row = SettingsRow::new(&label, &gpu_boost);
         let gpu_boost_row = &row.master_container;
         settings_section.add_row(gpu_boost_row);
-        settings_section.add_row(&row.master_container);
 
         cpu_boost_row.show_all();
         cpu_boost_row.set_no_show_all(true);
