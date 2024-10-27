@@ -507,32 +507,47 @@ impl DeviceManager {
         // self.device = Some(device);
     // }
 
-    pub fn discover_devices(&mut self) {
+    pub fn find_supported_device(&mut self, vid: u16, pid: u16) -> Option<&SupportedDevice> {
+        for device in &self.supported_devices {
+            // Unwrap: we control the strings and know they are are valid
+            let svid = u16::from_str_radix(&device.vid, 16).unwrap();
+            let spid = u16::from_str_radix(&device.pid, 16).unwrap();
+
+            if svid == vid && spid == pid {
+                return Some(device);
+            }
+        }
+
+        None
+    }
+
+    pub fn discover_devices(&mut self)  {
         // Check if socket is OK
         match HidApi::new() {
             Ok(api) => {
-                for device in api.device_list() {
-                    if device.vendor_id() == RAZER_VENDOR_ID {
-                        if device.interface_number() != 0 {
-                        } else {
-                            for sdevice in self.supported_devices.iter_mut() {
-                                let pid = u16::from_str_radix(&sdevice.pid, 16).unwrap();
-                                if device.product_id() == pid {
-                                    match api.open_path(device.path()) {
-                                        Ok(dev) => {
-                                            self.device = Some(RazerLaptop::new(sdevice.name.clone(), sdevice.features.clone(), sdevice.fan.clone(), dev));
-                                            // if let Some(laptop) = self.get_device() {
-                                                break;
-                                            // }
-                                        },
-                                        Err(e) => {
-                                            eprintln!("Error: {}", e);
-                                        }
-                                    };
-                                }
-                            }
-                        }
+                let devices = api.device_list()
+                    .filter(|d| d.vendor_id() == RAZER_VENDOR_ID)
+                    .filter(|d| d.interface_number() == 0);
 
+                for device in devices {
+
+                    let result = self.find_supported_device(device.vendor_id(), device.product_id());
+                    if let Some(supported_device) = result {
+
+                        match api.open_path(device.path()) {
+                            Ok(dev) => {
+                                self.device = Some(RazerLaptop::new(
+                                    supported_device.name.clone(),
+                                    supported_device.features.clone(),
+                                    supported_device.fan.clone(),
+                                    dev
+                                ));
+                                break;
+                            },
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                            }
+                        };
                     }
                 }
             },
