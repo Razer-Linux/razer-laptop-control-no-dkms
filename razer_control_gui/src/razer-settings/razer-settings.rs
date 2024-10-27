@@ -408,7 +408,7 @@ fn make_page(ac: bool, device: SupportedDevice) -> SettingsPage {
                 cpu_boost.append_text("Low");
                 cpu_boost.append_text("Medium");
                 cpu_boost.append_text("High");
-                cpu_boost.append_text("Boost");
+                if device.can_boost() { cpu_boost.append_text("Boost") };
                 cpu_boost.set_active(Some(power.1 as u32));
                 cpu_boost.set_width_request(100);
         let row = SettingsRow::new(&label, &cpu_boost);

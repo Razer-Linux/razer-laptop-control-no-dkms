@@ -12,3 +12,15 @@ pub struct SupportedDevice {
     pub features: Vec<String>,
     pub fan: Vec<u16>,
 }
+
+impl SupportedDevice {
+
+    pub fn has_feature(&self, feature: &str) -> bool {
+        self.features.iter().any(|f| f == feature)
+    }
+
+    pub fn can_boost(&self) -> bool {
+        self.has_feature("boost")
+    }
+
+}
