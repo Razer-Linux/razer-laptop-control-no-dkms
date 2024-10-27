@@ -4,7 +4,7 @@ use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow};
 use gtk::{
     Box, Label, Scale, Stack, StackSwitcher, Switch, ToolItem, Toolbar,
-    ComboBoxText, Button, ColorButton
+    ComboBoxText, Button, ColorButton, LinkButton
 };
 use gtk::{glib, glib::clone};
         
@@ -303,6 +303,7 @@ fn main() {
         let ac_settings_page = make_page(true, device.clone());
         let battery_settings_page = make_page(false, device.clone());
         let general_page = make_general_page();
+        let about_page = make_about_page(device.clone());
 
         let stack = Stack::new();
         stack.set_transition_type(gtk::StackTransitionType::SlideLeftRight);
@@ -310,6 +311,7 @@ fn main() {
         stack.add_titled(&ac_settings_page.master_container, "AC", "AC");
         stack.add_titled(&battery_settings_page.master_container, "Battery", "Battery");
         stack.add_titled(&general_page.master_container, "General", "General");
+        stack.add_titled(&about_page.master_container, "About", "About");
 
         stack.connect_screen_changed(|_, _| {
             println!("Page changed");
@@ -681,6 +683,36 @@ fn make_general_page() -> SettingsPage {
         let row = SettingsRow::new(&label, &scale);
         settings_section.add_row(&row.master_container);
     }
+
+    page
+}
+
+
+fn make_about_page(device: SupportedDevice) -> SettingsPage {
+    let page = SettingsPage::new();
+
+    // About page
+    let settings_section = page.add_section(Some("Razer Laptop Control"));
+        let label = Label::new(Some("Project"));
+        let model_label = LinkButton::new("https://github.com/JosuGZ/razer-laptop-control");
+    let row = SettingsRow::new(&label, &model_label);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Discord"));
+        let model_label = LinkButton::new("https://discord.gg/GdHKf45");
+    let row = SettingsRow::new(&label, &model_label);
+    settings_section.add_row(&row.master_container);
+
+    // Model section
+    let settings_section = page.add_section(Some("Laptop Information"));
+        let label = Label::new(Some("Model"));
+        let model_label = Label::new(Some(&device.name));
+    let row = SettingsRow::new(&label, &model_label);
+    settings_section.add_row(&row.master_container);
+        let label = Label::new(Some("Features"));
+        let features = device.features.join(", ");
+        let features_label = Label::new(Some(&features));
+    let row = SettingsRow::new(&label, &features_label);
+    settings_section.add_row(&row.master_container);
 
     page
 }
