@@ -687,19 +687,23 @@ fn make_general_page() -> SettingsPage {
     page
 }
 
-
 fn make_about_page(device: SupportedDevice) -> SettingsPage {
     let page = SettingsPage::new();
 
     // About page
     let settings_section = page.add_section(Some("Razer Laptop Control"));
         let label = Label::new(Some("Project"));
-        let model_label = LinkButton::new("https://github.com/JosuGZ/razer-laptop-control");
-    let row = SettingsRow::new(&label, &model_label);
+        let url = LinkButton::with_label("https://github.com/JosuGZ/razer-laptop-control", "Project repository");
+    let row = SettingsRow::new(&label, &url);
+    settings_section.add_row(&row.master_container);
+        let report_bug_url = "https://github.com/JosuGZ/razer-laptop-control/issues/new?labels=bug&template=bug_report.md&title=%5BBUG%5D";
+        let label = Label::new(Some("Bug reports"));
+        let url = LinkButton::with_label(report_bug_url, "Report bug");
+    let row = SettingsRow::new(&label, &url);
     settings_section.add_row(&row.master_container);
         let label = Label::new(Some("Discord"));
-        let model_label = LinkButton::new("https://discord.gg/GdHKf45");
-    let row = SettingsRow::new(&label, &model_label);
+        let url = LinkButton::with_label("https://discord.gg/GdHKf45", "Razer Linux");
+    let row = SettingsRow::new(&label, &url);
     settings_section.add_row(&row.master_container);
 
     // Model section
