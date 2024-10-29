@@ -85,7 +85,59 @@ fn main() {
     }
 
     start_keyboard_animator_task();
+    start_screensaver_monitor_task();
+    start_battery_monitor_task();
+    let clean_thread = start_shutdown_task();
 
+    if let Some(listener) = comms::create() {
+        for stream in listener.incoming() {
+            match stream {
+                Ok(stream) => handle_data(stream),
+                Err(_) => {} // Don't care about this
+            }
+        }
+    } else {
+        eprintln!("Could not create Unix socket!");
+        std::process::exit(1);
+    }
+    clean_thread.join().unwrap();
+}
+
+/// Installs a custom panic hook to perform cleanup when the daemon crashes
+fn setup_panic_hook() {
+    let default_panic_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        error!("Something went wrong! Removing the socket path");
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+        default_panic_hook(info);
+    }));
+}
+
+fn init_logging() {
+    let mut builder = env_logger::Builder::from_default_env();
+    builder.target(env_logger::Target::Stderr);
+    builder.filter_level(log::LevelFilter::Info);
+    builder.format_timestamp_millis();
+    builder.parse_env("RAZER_LAPTOP_CONTROL_LOG");
+    builder.init();
+}
+
+/// Handles keyboard animations
+pub fn start_keyboard_animator_task() -> JoinHandle<()> {
+    // Start the keyboard animator thread,
+    thread::spawn(|| {
+        loop {
+            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
+                EFFECT_MANAGER.lock().unwrap().update(laptop);
+            }
+            thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
+        }
+    })
+}
+
+fn start_screensaver_monitor_task() -> JoinHandle<()> {
     thread::spawn(move || {
         let dbus_session = Connection::new_session()
             .expect("failed to connect to D-Bus session bus");
@@ -146,8 +198,10 @@ fn main() {
             }
         }
 
-    });
+    })
+}
 
+fn start_battery_monitor_task() -> JoinHandle<()> {
     thread::spawn(move || {
         let dbus_system = Connection::new_system()
             .expect("failed to connect to D-Bus system bus");
@@ -191,55 +245,6 @@ fn main() {
         });
         // use login1::OrgFreedesktopLogin1ManagerPrepareForSleep;
         loop { dbus_system.process(time::Duration::from_millis(1000)).unwrap(); }
-    });
-
-    let clean_thread = start_shutdown_task();
-
-    if let Some(listener) = comms::create() {
-        for stream in listener.incoming() {
-            match stream {
-                Ok(stream) => handle_data(stream),
-                Err(_) => {} // Don't care about this
-            }
-        }
-    } else {
-        eprintln!("Could not create Unix socket!");
-        std::process::exit(1);
-    }
-    clean_thread.join().unwrap();
-}
-
-/// Installs a custom panic hook to perform cleanup when the daemon crashes
-fn setup_panic_hook() {
-    let default_panic_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        error!("Something went wrong! Removing the socket path");
-        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
-            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
-        }
-        default_panic_hook(info);
-    }));
-}
-
-fn init_logging() {
-    let mut builder = env_logger::Builder::from_default_env();
-    builder.target(env_logger::Target::Stderr);
-    builder.filter_level(log::LevelFilter::Info);
-    builder.format_timestamp_millis();
-    builder.parse_env("RAZER_LAPTOP_CONTROL_LOG");
-    builder.init();
-}
-
-/// Handles keyboard animations
-pub fn start_keyboard_animator_task() -> JoinHandle<()> {
-    // Start the keyboard animator thread,
-    thread::spawn(|| {
-        loop {
-            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
-                EFFECT_MANAGER.lock().unwrap().update(laptop);
-            }
-            thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
-        }
     })
 }
 
