@@ -26,4 +26,8 @@ echo "All files are present"
 printf "Checking that the service is enabled: "
 systemctl --user is-enabled razercontrol.service
 
+echo "Checking files on the path"
+printf -- "- " && which razer-cli
+printf -- "- " && which razer-settings
+
 echo "Done!"
