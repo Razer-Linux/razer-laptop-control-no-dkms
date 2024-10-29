@@ -9,11 +9,11 @@ edition = "2018"
 
 [[bin]]
 name = "razer-cli"
-path = "src/cli.rs"
+path = "src/cli/cli.rs"
 
 [[bin]]
 name = "daemon"
-path = "src/daemon.rs"
+path = "src/daemon/daemon.rs"
 
 [[bin]]
 name = "razer-settings"

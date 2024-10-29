@@ -1,3 +1,4 @@
+#[path = "../comms.rs"]
 mod comms;
 use clap::{error::ErrorKind, CommandFactory, Parser, Subcommand, ValueEnum};
 

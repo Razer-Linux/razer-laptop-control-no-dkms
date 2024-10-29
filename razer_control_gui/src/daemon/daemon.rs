@@ -1,3 +1,4 @@
+#[path = "../comms.rs"]
 mod comms;
 mod config;
 // mod driver_sysfs;
