@@ -84,15 +84,7 @@ fn main() {
         }
     }
 
-    // Start the keyboard animator thread,
-    thread::spawn(move || {
-        loop {
-            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
-                EFFECT_MANAGER.lock().unwrap().update(laptop);
-            }
-            std::thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
-        }
-    });
+    start_keyboard_animator_task();
 
     thread::spawn(move || {
         let dbus_session = Connection::new_session()
@@ -236,6 +228,19 @@ fn init_logging() {
     builder.format_timestamp_millis();
     builder.parse_env("RAZER_LAPTOP_CONTROL_LOG");
     builder.init();
+}
+
+/// Handles keyboard animations
+pub fn start_keyboard_animator_task() -> JoinHandle<()> {
+    // Start the keyboard animator thread,
+    thread::spawn(|| {
+        loop {
+            if let Some(laptop) = DEV_MANAGER.lock().unwrap().get_device() {
+                EFFECT_MANAGER.lock().unwrap().update(laptop);
+            }
+            thread::sleep(std::time::Duration::from_millis(kbd::ANIMATION_SLEEP_MS));
+        }
+    })
 }
 
 /// Monitors signals and stops the daemon when receiving one
