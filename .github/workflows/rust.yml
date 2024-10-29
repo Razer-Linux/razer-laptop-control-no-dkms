@@ -1,4 +1,4 @@
-name: Rust
+name: CI
 
 on:
   workflow_dispatch:
@@ -12,16 +12,14 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: rui314/setup-mold@v1
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages:  libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev libgtk-3-dev
+        packages:  libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev libgtk-3-dev 
         version: 1.0
-          
     - name: "Install Rust"
       uses: dtolnay/rust-toolchain@stable
     - name: "Cache cargo"
@@ -32,3 +30,21 @@ jobs:
     - name: Run tests
       working-directory: ./razer_control_gui
       run: cargo test --verbose
+
+  install:
+    # This assumes that the worker will be using systemctl
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v4
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages:  libdbus-1-dev libusb-dev libhidapi-dev libhidapi-hidraw0 pkg-config libudev-dev libgtk-3-dev 
+        version: 1.0
+    - name: "Install"
+      working-directory: ./razer_control_gui
+      # According to this, sudo sould run ok: https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges
+      run: ./install.sh install
+    - name: "Check installation"
+      working-directory: ./razer_control_gui
+      run: ../ci-helpers/check-installation.sh
