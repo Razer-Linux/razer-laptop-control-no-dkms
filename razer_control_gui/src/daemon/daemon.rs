@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::Mutex;
-use std::thread;
+use std::thread::{self, JoinHandle};
 use std::time;
 
 use log::*;
@@ -201,23 +201,7 @@ fn main() {
         loop { dbus_system.process(time::Duration::from_millis(1000)).unwrap(); }
     });
 
-    // Signal handler - cleanup if we are told to exit
-    let mut signals = Signals::new([SIGINT, SIGTERM]).unwrap();
-    let clean_thread = thread::spawn(move || {
-        let _ = signals.forever().next();
-        
-        // If we reach this point, we have a signal and it is time to exit
-        println!("Received signal, cleaning up");
-        let json = EFFECT_MANAGER.lock().unwrap().save();
-        if let Err(e) = config::Configuration::write_effects_save(json) {
-            eprintln!("Error write config {:?}", e);
-        }
-        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
-            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
-        }
-        std::process::exit(0);
-    });
-
+    let clean_thread = start_shutdown_task();
 
     if let Some(listener) = comms::create() {
         for stream in listener.incoming() {
@@ -252,6 +236,25 @@ fn init_logging() {
     builder.format_timestamp_millis();
     builder.parse_env("RAZER_LAPTOP_CONTROL_LOG");
     builder.init();
+}
+
+/// Monitors signals and stops the daemon when receiving one
+pub fn start_shutdown_task() -> JoinHandle<()> {
+    thread::spawn(|| {
+        let mut signals = Signals::new([SIGINT, SIGTERM]).unwrap();
+        let _ = signals.forever().next();
+        
+        // If we reach this point, we have a signal and it is time to exit
+        println!("Received signal, cleaning up");
+        let json = EFFECT_MANAGER.lock().unwrap().save();
+        if let Err(error) = config::Configuration::write_effects_save(json) {
+            error!("Error writing config {}", error);
+        }
+        if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
+            std::fs::remove_file(comms::SOCKET_PATH).unwrap();
+        }
+        std::process::exit(0);
+    })
 }
 
 fn handle_data(mut stream: UnixStream) {
