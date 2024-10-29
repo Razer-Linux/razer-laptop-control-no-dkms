@@ -15,6 +15,9 @@ use dbus::{blocking::Connection, arg};
 use dbus::Message;
 use std::sync::Mutex;
 use std::{thread, time};
+
+use log::*;
+
 mod battery;
 mod dbus_mutter_displayconfig;
 mod dbus_mutter_idlemonitor;
@@ -40,6 +43,7 @@ lazy_static! {
 // Main function for daemon
 fn main() {
     setup_panic_hook();
+    init_logging();
 
     if let Ok(mut d) = DEV_MANAGER.lock() {
         d.discover_devices();
@@ -239,6 +243,15 @@ fn setup_panic_hook() {
         }
         default_panic_hook(info);
     }));
+}
+
+fn init_logging() {
+    let mut builder = env_logger::Builder::from_default_env();
+    builder.target(env_logger::Target::Stderr);
+    builder.filter_level(log::LevelFilter::Info);
+    builder.format_timestamp_millis();
+    builder.parse_env("RAZER_LAPTOP_CONTROL_LOG");
+    builder.init();
 }
 
 fn handle_data(mut stream: UnixStream) {
