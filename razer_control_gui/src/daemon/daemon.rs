@@ -237,7 +237,7 @@ fn main() {
 fn setup_panic_hook() {
     let default_panic_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
-        println!("Something went wrong! Removing the socket path");
+        error!("Something went wrong! Removing the socket path");
         if std::fs::metadata(comms::SOCKET_PATH).is_ok() {
             std::fs::remove_file(comms::SOCKET_PATH).unwrap();
         }
