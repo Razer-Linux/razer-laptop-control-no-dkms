@@ -1,28 +1,28 @@
+use std::io::{Read, Write};
+use std::os::unix::net::UnixStream;
+use std::sync::Mutex;
+use std::thread;
+use std::time;
+
+use log::*;
+use lazy_static::lazy_static;
+use signal_hook::iterator::Signals;
+use signal_hook::consts::{SIGINT, SIGTERM};
+use dbus::blocking::Connection;
+use dbus::{Message, arg};
+
 #[path = "../comms.rs"]
 mod comms;
 mod config;
-// mod driver_sysfs;
 mod kbd;
 mod device;
-use crate::kbd::Effect;
-// use bincode::Options;
-use lazy_static::lazy_static;
-use signal_hook::{iterator::Signals, consts::SIGINT, consts::SIGTERM};
-// use std::io::prelude::*;
-use std::io::{Read, Write};
-use std::os::unix::net::UnixStream;
-use dbus::{blocking::Connection, arg};
-use dbus::Message;
-use std::sync::Mutex;
-use std::{thread, time};
-
-use log::*;
-
 mod battery;
 mod dbus_mutter_displayconfig;
 mod dbus_mutter_idlemonitor;
 mod screensaver;
 mod login1;
+
+use crate::kbd::Effect;
 
 lazy_static! {
     static ref EFFECT_MANAGER: Mutex<kbd::EffectManager> = Mutex::new(kbd::EffectManager::new());
