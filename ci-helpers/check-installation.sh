@@ -11,7 +11,7 @@ check_file() {
 
 echo "Checking the existence of the necessary files..."
 # Daemon
-# check_file "~/.local/share/razercontrol"
+check_file "$HOME/.local/share/razercontrol"
 check_file "/usr/share/razercontrol/daemon"
 check_file "/usr/share/razercontrol/laptops.json"
 check_file "/etc/udev/rules.d/99-hidraw-permissions.rules"
@@ -21,7 +21,6 @@ check_file "/usr/bin/razer-cli"
 check_file "/usr/bin/razer-settings"
 check_file "/usr/share/applications/razer-settings.desktop"
 echo "All files are present"
-
 
 printf "Checking that the service is enabled: "
 systemctl --user is-enabled razercontrol.service
