@@ -244,5 +244,12 @@
         "pid": "0279",
         "features": ["logo", "boost"],
         "fan": [2300, 4300]
-    }
+    },
+    {
+        "name": "Razer Blade 18 2023",
+        "vid": "1532",
+        "pid": "02a0",
+        "features": ["logo", "boost", "bho"],
+        "fan": [2200, 5000]
+    }     
 ]
