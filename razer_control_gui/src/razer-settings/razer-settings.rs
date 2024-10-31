@@ -298,6 +298,7 @@ fn main() {
             .default_width(640)
             .default_height(480)
             .title("Razer Settings")
+            .window_position(gtk::WindowPosition::Center)
             .build();
 
         let ac_settings_page = make_page(true, device.clone());
