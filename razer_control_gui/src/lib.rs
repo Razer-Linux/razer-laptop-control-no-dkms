@@ -23,4 +23,8 @@ impl SupportedDevice {
         self.has_feature("boost")
     }
 
+    pub fn has_logo(&self) -> bool {
+        self.has_feature("logo")
+    }
+
 }

@@ -360,7 +360,6 @@ fn main() {
 }
 
 fn make_page(ac: bool, device: SupportedDevice) -> SettingsPage {
-    let logo = get_logo(ac);
     let fan_speed = get_fan_speed(ac).or_crash("Error reading fan speed");
     let brightness = get_brightness(ac).or_crash("Error reading brightness");
     let power = get_power(ac);
@@ -373,7 +372,8 @@ fn make_page(ac: bool, device: SupportedDevice) -> SettingsPage {
     let settings_page = SettingsPage::new();
 
     // Logo section
-    if let Some(logo) = logo {
+    if device.has_logo() {
+        let logo = get_logo(ac).or_crash("Error reading logo");
         let settings_section = settings_page.add_section(Some("Logo"));
             let label = Label::new(Some("Turn on logo"));
             let logo_options = ComboBoxText::new();

@@ -4,140 +4,140 @@
         "name": "Blade 15 2016",
         "vid": "1532",
         "pid": "0224",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2018 15 advanced",
         "vid": "1532",
         "pid": "0233",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2018 15 base",
         "vid": "1532",
         "pid": "023B",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2018 15 Mercury edition",
         "vid": "1532",
         "pid": "0240",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2019 15 base",
         "vid": "1532",
         "pid": "0246",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2019 15 advanced",
         "vid": "1532",
         "pid": "023A",
-        "features": ["creator_mode"],
+        "features": ["logo", "creator_mode"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2019 15 Mercury edition",
         "vid": "1532",
         "pid": "0245",
-        "features": ["creator_mode"],
+        "features": ["logo", "creator_mode"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2020 15 base",
         "vid": "1532",
         "pid": "0255",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2020 15 advanced",
         "vid": "1532",
         "pid": "0253",
-        "features": ["creator_mode", "boost"],
+        "features": ["logo", "creator_mode", "boost"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2017 stealth",
         "vid": "1532",
         "pid": "022D",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "late Blade 2017 stealth",
         "vid": "1532",
         "pid": "0232",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2019 stealth",
         "vid": "1532",
         "pid": "0239",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2019 stealth (With GTX)",
         "vid": "1532",
         "pid": "024A",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2020 stealth",
         "vid": "1532",
         "pid": "0252",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2020 pro",
         "vid": "1532",
         "pid": "0256",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2019 pro",
         "vid": "1532",
         "pid": "0234",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5300]
     },
     {
         "name": "Blade 2018 pro FHD",
         "vid": "1532",
         "pid": "022F",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2017 pro",
         "vid": "1532",
         "pid": "0225",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2017 pro",
         "vid": "1532",
         "pid": "0210",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade QHD",
         "vid": "1532",
         "pid": "020F",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
@@ -151,98 +151,98 @@
         "name": "Blade 2021 15 base",
         "vid": "1532",
         "pid": "026F",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 14 2021",
         "vid": "1532",
         "pid": "0270",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2021 15 advanced",
         "vid": "1532",
         "pid": "0276",
-        "features": ["boost"],
+        "features": ["logo", "boost"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade late 2021 15 advanced",
         "vid": "1532",
         "pid": "026D",
-        "features": ["boost"],
+        "features": ["logo", "boost"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade late 2021 15 base",
         "vid": "1532",
         "pid": "027A",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade early 2022 15 advanced",
         "vid": "1532",
         "pid": "028A",
-        "features": ["boost", "bho"],
+        "features": ["logo", "boost", "bho"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2022 17",
         "vid": "1532",
         "pid": "028B",
-        "features": ["boost"],
+        "features": ["logo", "boost"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade 2022 14",
         "vid": "1532",
         "pid": "028C",
-        "features": ["boost", "bho"],
+        "features": ["logo", "boost", "bho"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade late 2020 stealth",
         "vid": "1532",
         "pid": "0259",
-        "features": [],
+        "features": ["logo"],
         "fan": [3500, 5000]
     },
     {
         "name": "Blade late 16",
         "vid": "1532",
         "pid": "029F",
-        "features": ["boost", "bho"],
+        "features": ["logo", "boost", "bho"],
         "fan": [2200, 5000]
     },
     {
         "name": "Blade 2023 14",
         "vid": "1532",
         "pid": "029D",
-        "features": ["boost", "bho"],
+        "features": ["logo", "boost", "bho"],
         "fan": [2200, 5000]
     },
     {
         "name": "Blade Early 2021 17 pro",
         "vid": "1532",
         "pid": "026E",
-        "features": ["boost"],
+        "features": ["logo", "boost"],
         "fan": [2300, 4300]
     },
     {
        "name": "Blade 2024 14",
        "vid": "1532",
        "pid": "02b6",
-       "features": ["boost", "bho"],
+       "features": ["logo", "boost", "bho"],
        "fan": [2200, 5000]
     },
     {
         "name": "Blade Mid 2021 17 pro",
         "vid": "1532",
         "pid": "0279",
-        "features": ["boost"],
+        "features": ["logo", "boost"],
         "fan": [2300, 4300]
     }
 ]
