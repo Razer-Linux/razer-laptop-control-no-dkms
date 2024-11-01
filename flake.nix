@@ -38,7 +38,7 @@
           src = ./razer_control_gui;
 
           postConfigure = ''
-            substituteInPlace src/device.rs --replace '/usr/share/razercontrol/laptops.json' '${./razer_control_gui/data/devices/laptops.json}'
+            substituteInPlace src/daemon/device.rs --replace '/usr/share/razercontrol/laptops.json' '${./razer_control_gui/data/devices/laptops.json}'
           '';
 
           postBuild =
