@@ -105,8 +105,6 @@
                 Type = "simple";
                 ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %h/.local/share/razercontrol";
                 ExecStart = "${cfg.package}/libexec/daemon";
-                Restart = "on-failure";
-                RestartSec = "5s";
               };
               wantedBy = [ "default.target" ];
             };
