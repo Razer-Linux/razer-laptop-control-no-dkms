@@ -57,6 +57,13 @@
         "fan": [3500, 5000]
     },
     {
+        "name": "Blade 2020 15 base late 2020",
+        "vid": "1532",
+        "pid": "0268",
+        "features": ["logo"],
+        "fan": [3600, 5200]
+    },
+    {
         "name": "Blade 2020 15 advanced",
         "vid": "1532",
         "pid": "0253",
@@ -251,5 +258,5 @@
         "pid": "02a0",
         "features": ["logo", "boost", "bho"],
         "fan": [2200, 5000]
-    }     
+    }
 ]
