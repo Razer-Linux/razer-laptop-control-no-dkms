@@ -1,17 +1,14 @@
 use std::cell::Cell;
 
 use gtk::prelude::*;
-use gtk::{
-    Box, Frame, Label, ListBox, ListBoxRow, Separator, Widget, Grid
-};
+use gtk::{Box, Frame, Grid, Label, ListBox, ListBoxRow, Separator, Widget};
 
 pub struct SettingsPage {
     // TODO: Can I make this a widget? This is self originally
-    pub master_container: Box
+    pub master_container: Box,
 }
 
 impl SettingsPage {
-    
     pub fn new() -> SettingsPage {
         let master_container = Box::new(gtk::Orientation::Vertical, 15);
         master_container.set_margin_start(80);
@@ -19,26 +16,23 @@ impl SettingsPage {
         master_container.set_margin_top(15);
         master_container.set_margin_bottom(15);
 
-        SettingsPage {
-            master_container
-        }
+        SettingsPage { master_container }
     }
 
     pub fn add_section(&self, title: Option<&str>) -> SettingsSection {
         let section = SettingsSection::new(title);
-        self.master_container.pack_start(&section.master_container, false, false, 0);
+        self.master_container
+            .pack_start(&section.master_container, false, false, 0);
         section
     }
-
 }
 
 pub struct SettingsRow {
     // TODO: Can I make this a widget? This is self originally
-    pub master_container: ListBoxRow
+    pub master_container: ListBoxRow,
 }
 
 impl SettingsRow {
-    
     pub fn new(
         label: &impl IsA<Widget>,
         main_widget: &impl IsA<Widget>,
@@ -66,23 +60,27 @@ impl SettingsRow {
         description_box.add(label);
 
         grid.attach(&description_box, 0, 0, 1, 1);
-        grid.attach_next_to(main_widget /*stack*/, Some(&description_box), gtk::PositionType::Right, 1, 1);
+        grid.attach_next_to(
+            main_widget, /*stack*/
+            Some(&description_box),
+            gtk::PositionType::Right,
+            1,
+            1,
+        );
         hbox.add(&grid); // TODO: No es así como lo hacen
-        
+
         master_container.add(&hbox);
 
-        SettingsRow {
-            master_container
-        }
+        SettingsRow { master_container }
     }
 
+    #[allow(dead_code)]
     pub fn add_section(&self, title: Option<&str>) -> SettingsSection {
         let section = SettingsSection::new(title);
         // self.master_container.pack_start(&section.master_container, false, false, 0); TODO: It should be this
         self.master_container.add(&section.master_container);
         section
     }
-
 }
 
 pub struct SettingsSection {
@@ -90,11 +88,10 @@ pub struct SettingsSection {
     pub master_container: Box,
     container: Box,
     frame: Frame,
-    need_separator: Cell<bool>
+    need_separator: Cell<bool>,
 }
 
 impl SettingsSection {
-
     pub fn new(title: Option<&str>) -> SettingsSection {
         let master_container = Box::new(gtk::Orientation::Vertical, 10);
 
@@ -123,7 +120,7 @@ impl SettingsSection {
             master_container,
             container,
             frame,
-            need_separator: Cell::new(false)
+            need_separator: Cell::new(false),
         }
     }
 
